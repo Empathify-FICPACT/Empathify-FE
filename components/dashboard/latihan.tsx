@@ -1,64 +1,12 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Badge from "./badge";
 
 export default function Latihan() {
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
       <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-start relative">
-        {/* Right Sidebar - Badges & Missions (order-1 on mobile = appears first / on top) */}
-        <div className="w-full xl:w-[320px] flex flex-col gap-4 lg:gap-6 flex-shrink-0 order-1 xl:order-2 sticky top-2 md:top-[72px] z-30 xl:mt-[68px] bg-[#f9fafb] xl:bg-transparent pb-2 xl:pb-0">
-          {/* Badge Level */}
-          <div className="bg-white border border-gray-200 rounded-[20px] p-5 lg:p-6 shadow-sm">
-            <h3 className="text-[#2cb46c] font-bold mb-3 lg:mb-4 text-[17px]">
-              Badge Level
-            </h3>
-            <div className="flex gap-4 items-center">
-              <div className="flex-shrink-0">
-                <Image
-                  src="/logo/BadgeLevel.svg"
-                  alt="Badge Level"
-                  width={48}
-                  height={56}
-                  className="object-contain w-10 h-10 lg:w-12 lg:h-[56px]"
-                />
-              </div>
-              <p className="text-sm lg:text-[15px] text-gray-900 font-bold leading-snug">
-                Mulai latihan untuk mendapatkan badge pertamamu!
-              </p>
-            </div>
-          </div>
-
-          {/* Misi Harian */}
-          <div className="bg-white border border-gray-200 rounded-[20px] p-5 lg:p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-3 lg:mb-4">
-              <h3 className="text-[#2cb46c] font-bold text-[17px]">
-                Misi Harian
-              </h3>
-              <button className="text-[13px] text-gray-900 font-bold hover:text-green-500 transition-colors">
-                Lihat Semua
-              </button>
-            </div>
-            <div className="flex gap-4 items-start">
-              <div className="flex-shrink-0 pt-1">
-                <Image
-                  src="/logo/BadgeLevel.svg"
-                  alt="Mission Padlock"
-                  width={48}
-                  height={56}
-                  className="object-contain w-10 h-10 lg:w-12 lg:h-[56px]"
-                />
-              </div>
-              <div className="flex-grow flex flex-col justify-center">
-                <p className="text-sm lg:text-[15px] text-gray-900 font-bold leading-snug mb-2 lg:mb-3">
-                  Selesaikan 1 latihan simulasi percakapan
-                </p>
-                <div className="w-full h-2.5 lg:h-3 bg-[#e5e7eb] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#2cb46c] w-0"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Badge showMisi={true} />
 
         {/* Main Content (Latihan Harian + Cards) */}
         <div className="flex-1 w-full order-2 xl:order-1 min-w-0">

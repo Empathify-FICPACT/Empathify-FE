@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { Menu, User, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const pathname = usePathname();
 
   // Auto-minimize on smaller screens and track if mobile
   useEffect(() => {
@@ -82,10 +84,14 @@ export default function Sidebar() {
           )}
           <nav className="flex flex-col gap-1.5">
             <Link
-              href="#"
+              href="/dashboard/beranda"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } bg-[#2cb46c] text-white py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } py-3 lg:py-3.5 rounded-xl font-medium transition-all ${
+                pathname === "/dashboard/beranda" 
+                  ? "bg-[#2cb46c] text-white" 
+                  : "text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50"
+              }`}
               title={isMinimized ? "Beranda" : undefined}
             >
               <Image src="/dashboard/berandaIcon.svg" alt="Beranda" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
@@ -94,10 +100,14 @@ export default function Sidebar() {
               )}
             </Link>
             <Link
-              href="#"
+              href="/dashboard/latihan"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } py-3 lg:py-3.5 rounded-xl font-medium transition-all ${
+                pathname === "/dashboard/latihan" 
+                  ? "bg-[#2cb46c] text-white" 
+                  : "text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50"
+              }`}
               title={isMinimized ? "Latihan" : undefined}
             >
               <Image src="/dashboard/LatihanIcon.svg" alt="Latihan" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
@@ -106,10 +116,14 @@ export default function Sidebar() {
               )}
             </Link>
             <Link
-              href="#"
+              href="/dashboard/misi"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } py-3 lg:py-3.5 rounded-xl font-medium transition-all ${
+                pathname === "/dashboard/misi" 
+                  ? "bg-[#2cb46c] text-white" 
+                  : "text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50"
+              }`}
               title={isMinimized ? "Misi" : undefined}
             >
               <Image src="/dashboard/MisiIcon.svg" alt="Misi" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
@@ -118,10 +132,14 @@ export default function Sidebar() {
               )}
             </Link>
             <Link
-              href="#"
+              href="/dashboard/penghargaan"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } py-3 lg:py-3.5 rounded-xl font-medium transition-all ${
+                pathname === "/dashboard/penghargaan" 
+                  ? "bg-[#2cb46c] text-white" 
+                  : "text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50"
+              }`}
               title={isMinimized ? "Penghargaan" : undefined}
             >
               <Image src="/dashboard/PenghargaanIcon.svg" alt="Penghargaan" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
@@ -148,10 +166,10 @@ export default function Sidebar() {
               href="#"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
               title={isMinimized ? "Profile" : undefined}
             >
-              <User className="w-5 h-5 flex-shrink-0" />
+              <Image src="/dashboard/ProfileIcon.svg" alt="Profile" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
                 <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Profile</span>
               )}
@@ -160,10 +178,10 @@ export default function Sidebar() {
               href="#"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } text-[#2cb46c] hover:text-[#259b5d] hover:bg-green-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
               title={isMinimized ? "Keluar" : undefined}
             >
-              <LogOut className="w-5 h-5 flex-shrink-0" />
+              <Image src="/dashboard/LogoutIcon.svg" alt="Keluar" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
                 <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Keluar</span>
               )}
