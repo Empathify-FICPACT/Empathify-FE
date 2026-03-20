@@ -27,25 +27,25 @@ export default function Testimonial() {
     {
       text: "Biasanya susah banget ngajak anak latihan di rumah. Tapi karena bentuknya seperti game, sekarang dia malah minta belajar sendiri setiap hari.",
       name: "Dion",
-      avatar: "/avatar1.svg",
+      avatar: "/avatar/avatar1.svg",
       bgColor: "bg-[#b8f0d5]", // Using a soft mint green fallback
     },
     {
       text: "Anak saya jadi lebih paham ekspresi wajah dan emosi orang lain. Perubahannya terasa banget dalam interaksi sehari-hari",
       name: "Dzaky",
-      avatar: "/avatar2.svg",
+      avatar: "/avatar/avatar2.svg",
       bgColor: "bg-[#fef0c7]", // Soft yellow fallback
     },
     {
       text: "Sejak pakai Empathify, anakku jadi lebih mudah fokus dan mulai berani menyapa orang lain. Latihannya seru, jadi dia gak merasa seperti lagi terapi.",
       name: "Aditri",
-      avatar: "/avatar3.svg",
+      avatar: "/avatar/avatar3.svg",
       bgColor: "bg-[#e0e7ff]", // Soft blue fallback
     },
     {
       text: "Sejak pakai Empathify, anakku jadi lebih mudah fokus dan mulai berani menyapa orang lain. Latihannya seru, jadi dia gak merasa seperti lagi terapi.",
       name: "Satria",
-      avatar: "/avatar3.svg",
+      avatar: "/avatar/avatar4.svg",
       bgColor: "bg-[#e0e7ff]", // Soft blue fallback
     },
   ];
@@ -53,10 +53,10 @@ export default function Testimonial() {
   return (
     <section className="w-full bg-[#f9fafb] py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
       <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] font-extrabold text-[#3FC07B] mb-3 md:mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#3FC07B] mb-3 md:mb-4">
           Kata Mereka tentang Empathify
         </h2>
-        <p className="text-[#555555] text-base sm:text-lg md:text-[19px] font-medium leading-relaxed">
+        <p className="text-[#555555] text-base sm:text-lg md:text-[19px] font-semibold leading-relaxed">
           Cerita pengalaman anak dan orang tua belajar dan <br className="hidden md:block" />
           berkembang bersama kami
         </p>
@@ -66,14 +66,14 @@ export default function Testimonial() {
         {/* Navigation Buttons */}
         <button
           onClick={scrollLeft}
-          className="hidden md:flex absolute left-[-16px] lg:left-[-24px] top-[45%] -translate-y-1/2 w-10 h-10 lg:w-[46px] lg:h-[46px] bg-[#1C8A4E] text-white rounded-full items-center justify-center hover:bg-[#16703c] transition-all active:scale-90 duration-200 z-10 shadow-md"
+          className="flex absolute left-[-12px] md:left-[-16px] lg:left-[-24px] top-[45%] -translate-y-1/2 w-10 h-10 lg:w-[46px] lg:h-[46px] bg-[#1C8A4E] text-white rounded-full items-center justify-center hover:bg-[#16703c] transition-all active:scale-90 duration-200 z-10 shadow-md"
         >
           <ChevronLeft className="w-6 h-6 lg:w-7 lg:h-7" />
         </button>
 
         <button
           onClick={scrollRight}
-          className="hidden md:flex absolute right-[-16px] lg:right-[-24px] top-[45%] -translate-y-1/2 w-10 h-10 lg:w-[46px] lg:h-[46px] bg-[#1C8A4E] text-white rounded-full items-center justify-center hover:bg-[#16703c] transition-all active:scale-90 duration-200 z-10 shadow-md"
+          className="flex absolute right-[-12px] md:right-[-16px] lg:right-[-24px] top-[45%] -translate-y-1/2 w-10 h-10 lg:w-[46px] lg:h-[46px] bg-[#1C8A4E] text-white rounded-full items-center justify-center hover:bg-[#16703c] transition-all active:scale-90 duration-200 z-10 shadow-md"
         >
           <ChevronRight className="w-6 h-6 lg:w-7 lg:h-7" />
         </button>
@@ -129,7 +129,7 @@ export default function Testimonial() {
                 {/* Quote Icon */}
                 <div className="flex-shrink-0">
                   <Image
-                    src="/TestiIcon.svg"
+                    src="/icon/TestiIcon.svg"
                     alt="Quote Icon"
                     width={48}
                     height={48}

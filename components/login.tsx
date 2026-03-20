@@ -9,7 +9,7 @@ export default function Login() {
   return (
     <div
       className="relative min-h-screen w-full flex items-center justify-center font-sans bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/Login.svg')" }}
+      style={{ backgroundImage: "url('/background/Login.svg')" }}
     >
       {/* Header (Close btn, Logo & Daftar btn) */}
       <div className="absolute top-0 left-0 w-full flex justify-between items-center px-4 py-4 md:px-8 md:py-6 z-20">
@@ -38,7 +38,7 @@ export default function Login() {
           {/* Logo */}
           <div className="relative h-6 md:h-9 w-[120px] md:w-[150px]">
             <Image
-              src="/Logo putih.svg"
+              src="/logo/Logo putih.svg"
               alt="Empathify Logo"
               fill
               className="object-contain object-left"

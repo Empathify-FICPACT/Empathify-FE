@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, FileText, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -54,11 +54,11 @@ export default function Sidebar() {
           {!isMinimized && (
             <div className="flex items-center gap-2 text-[#1f8d55] font-extrabold text-2xl tracking-tight overflow-hidden whitespace-nowrap">
               <Image
-                src="/LogoHijau.svg"
+                src="/logo/LogoHijau.svg"
                 alt="Empathify Logo"
                 width={130}
                 height={40}
-                className="object-contain object-left w-auto h-auto max-h-8"
+                className="object-contain object-left w-auto h-auto lg:max-h-8 max-h-6"
                 priority
               />
             </div>
@@ -74,7 +74,7 @@ export default function Sidebar() {
         {/* Dasbor Section */}
         <div className="mb-6 lg:mb-8 flex flex-col items-stretch">
           {!isMinimized ? (
-            <h3 className="text-xs lg:text-sm font-bold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
+            <h3 className="text-xs lg:text-lg font-extrabold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
               Dasbor
             </h3>
           ) : (
@@ -88,7 +88,7 @@ export default function Sidebar() {
               } bg-[#2cb46c] text-white py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
               title={isMinimized ? "Beranda" : undefined}
             >
-              <FileText className="w-5 h-5 flex-shrink-0" />
+              <Image src="/dashboard/berandaIcon.svg" alt="Beranda" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
                 <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Beranda</span>
               )}
@@ -100,7 +100,7 @@ export default function Sidebar() {
               } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
               title={isMinimized ? "Latihan" : undefined}
             >
-              <FileText className="w-5 h-5 flex-shrink-0" />
+              <Image src="/dashboard/LatihanIcon.svg" alt="Latihan" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
                 <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Latihan</span>
               )}
@@ -112,7 +112,7 @@ export default function Sidebar() {
               } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
               title={isMinimized ? "Misi" : undefined}
             >
-              <FileText className="w-5 h-5 flex-shrink-0" />
+              <Image src="/dashboard/MisiIcon.svg" alt="Misi" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
                 <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Misi</span>
               )}
@@ -124,7 +124,7 @@ export default function Sidebar() {
               } text-gray-400 hover:text-gray-600 hover:bg-gray-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
               title={isMinimized ? "Penghargaan" : undefined}
             >
-              <FileText className="w-5 h-5 flex-shrink-0" />
+              <Image src="/dashboard/PenghargaanIcon.svg" alt="Penghargaan" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
                 <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">
                   Penghargaan
@@ -137,7 +137,7 @@ export default function Sidebar() {
         {/* Akun Section */}
         <div className="flex flex-col items-stretch mt-auto lg:mt-0">
           {!isMinimized ? (
-            <h3 className="text-xs lg:text-sm font-bold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
+            <h3 className="text-xs lg:text-lg font-extrabold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
               Akun
             </h3>
           ) : (

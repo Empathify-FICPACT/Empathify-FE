@@ -21,19 +21,12 @@ export default function AvatarSelect() {
   if (step === 3) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8F9FA] font-sans p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl p-10 text-center space-y-6 shadow-xl animate-in fade-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-[#2ECA7B] rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-100 relative">
-            {/* Simple confetti dots around */}
-            <div className="absolute w-3 h-3 bg-yellow-400 rounded-full -top-2 left-0 animate-ping" />
-            <div className="absolute w-2 h-2 bg-blue-400 rounded-full top-8 -right-4 animate-pulse" />
-            <div className="absolute w-4 h-4 bg-pink-400 rounded-full bottom-0 -left-6" />
-            
-            <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+        <div className="max-w-md w-full bg-white rounded-3xl p-10 text-center space-y-4 shadow-xl animate-in fade-in zoom-in duration-500">
+          <div className="relative w-36 h-36 sm:w-48 sm:h-48 mx-auto -mt-4 mb-2">
+            <Image src="/icon/IconSukses.svg" alt="Pendaftaran Berhasil" fill className="object-contain" priority />
           </div>
           
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mt-6">Pendaftaran Berhasil!</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Pendaftaran Berhasil!</h1>
           <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
             Akun Anda telah sukses terdaftar. Mari mulai petualangan Anda di Empathify sekarang juga!
           </p>
@@ -90,7 +83,7 @@ export default function AvatarSelect() {
               >
                 {/* Character Image */}
                 <div className="absolute inset-0 pointer-events-none p-4 sm:p-9">
-                  <Image src="/gender1.svg" alt="Laki-laki" fill className="object-cover object-center" priority />
+                  <Image src="/avatar/gender1.svg" alt="Laki-laki" fill className="object-cover object-center" priority />
                 </div>
               </button>
 
@@ -103,7 +96,7 @@ export default function AvatarSelect() {
               >
                 {/* Character Image */}
                 <div className="absolute inset-0 pointer-events-none p-4 sm:p-9">
-                  <Image src="/gender2.svg" alt="Perempuan" fill className="object-cover object-center" priority /> 
+                  <Image src="/avatar/gender2.svg" alt="Perempuan" fill className="object-cover object-center" priority /> 
                 </div>
               </button>
             </div>
@@ -124,7 +117,7 @@ export default function AvatarSelect() {
                 }`}
               >
 
-                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar1.svg" alt="Avatar 1" fill className="object-cover object-center" /></div>
+                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar/avatar1.svg" alt="Avatar 1" fill className="object-cover object-center" /></div>
               </button>
 
               {/* Koala */}
@@ -134,7 +127,7 @@ export default function AvatarSelect() {
                 }`}
               >
 
-                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar2.svg" alt="Avatar 2" fill className="object-cover object-center" /></div>
+                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar/avatar2.svg" alt="Avatar 2" fill className="object-cover object-center" /></div>
               </button>
 
               {/* Panda */}
@@ -144,7 +137,7 @@ export default function AvatarSelect() {
                 }`}
               >
 
-                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar3.svg" alt="Avatar 3" fill className="object-cover object-center" /></div>
+                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar/avatar3.svg" alt="Avatar 3" fill className="object-cover object-center" /></div>
               </button>
 
               {/* Lion */}
@@ -154,7 +147,7 @@ export default function AvatarSelect() {
                 }`}
               >
 
-                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar4.svg" alt="Avatar 4" fill className="object-cover object-center" /></div>
+                <div className="absolute inset-0 pointer-events-none p-4 sm:p-9"><Image src="/avatar/avatar4.svg" alt="Avatar 4" fill className="object-cover object-center" /></div>
               </button>
             </div>
           </div>

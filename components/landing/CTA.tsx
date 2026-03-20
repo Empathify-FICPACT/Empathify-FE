@@ -7,7 +7,7 @@ export default function CTA() {
       
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto mb-20 md:mb-32">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-bold text-[#35b565] mb-3 md:mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#35b565] mb-3 md:mb-4">
           Belajar Seru Bareng Empathify
         </h2>
         <p className="text-base sm:text-lg md:text-xl text-gray-500 font-medium mb-8 md:mb-10">
@@ -23,7 +23,7 @@ export default function CTA() {
       {/* Vector Background */}
       <div className="absolute bottom-0 left-0 right-0 w-full pointer-events-none z-0">
         <Image
-          src="/VectorCTA.svg"
+          src="/background/VectorCTA.svg"
           alt="Wave pattern"
           width={1920}
           height={368}

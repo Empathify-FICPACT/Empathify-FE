@@ -7,7 +7,7 @@ export default function Trial() {
       {/* Background patterns from bgFree Trial.svg */}
       <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
         <Image
-          src="/bgFree Trial.svg"
+          src="/background/bgFree Trial.svg"
           alt="Background Pattern"
           fill
           className="object-cover object-center"
@@ -19,7 +19,7 @@ export default function Trial() {
         {/* Left Side: Penguin Image */}
         <div className="flex-shrink-0 w-full md:w-[45%] lg:w-[40%] flex justify-center md:justify-end">
           <Image
-            src="/logoTrial.svg"
+            src="/logo/logoTrial.svg"
             alt="Pinguin Mascot"
             width={500}
             height={500}
@@ -30,7 +30,7 @@ export default function Trial() {
 
         {/* Right Side: Text & Button */}
         <div className="w-full md:w-[55%] lg:w-[65%] text-center md:text-left flex flex-col items-center md:items-start lg:pl-4">
-          <h2 className="text-2xl md:text-4xl lg:text-[42px] font-bold text-white leading-tight mb-4 whitespace-nowrap">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mb-4 whitespace-nowrap">
             Coba Latihan Pertamamu Sekarang
           </h2>
           <p className="text-white/90 text-base md:text-lg lg:text-2xl mb-8 md:mb-10 font-medium">

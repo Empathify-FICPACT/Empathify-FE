@@ -15,7 +15,7 @@ export default function Latihan() {
             <div className="flex gap-4 items-center">
               <div className="flex-shrink-0">
                 <Image
-                  src="/BadgeLevel.svg"
+                  src="/logo/BadgeLevel.svg"
                   alt="Badge Level"
                   width={48}
                   height={56}
@@ -41,7 +41,7 @@ export default function Latihan() {
             <div className="flex gap-4 items-start">
               <div className="flex-shrink-0 pt-1">
                 <Image
-                  src="/BadgeLevel.svg"
+                  src="/logo/BadgeLevel.svg"
                   alt="Mission Padlock"
                   width={48}
                   height={56}
@@ -84,7 +84,7 @@ export default function Latihan() {
                 <ArrowRight className="w-3 h-3" />
               </button>
               <Image
-                src="/PinguinHijau.svg"
+                src="/pinguin/PinguinHijau.svg"
                 alt="Pinguin Hijau"
                 width={200}
                 height={200}
@@ -107,7 +107,7 @@ export default function Latihan() {
                 <ArrowRight className="w-3 h-3" />
               </button>
               <Image
-                src="/pinguinBiru.svg"
+                src="/pinguin/PinguinBiru.svg"
                 alt="Pinguin Biru"
                 width={200}
                 height={200}
@@ -130,7 +130,7 @@ export default function Latihan() {
                 <ArrowRight className="w-3 h-3" />
               </button>
               <Image
-                src="/PinguinUngu.svg"
+                src="/pinguin/PinguinUngu.svg"
                 alt="Pinguin Ungu"
                 width={400}
                 height={400}
@@ -153,7 +153,7 @@ export default function Latihan() {
                 <ArrowRight className="w-3 h-3" />
               </button>
               <Image
-                src="/PinguinKuning.svg"
+                src="/pinguin/PinguinKuning.svg"
                 alt="Pinguin Kuning"
                 width={400}
                 height={400}
