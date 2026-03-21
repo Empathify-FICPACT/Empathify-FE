@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Trial() {
   return (
-    <section className="relative w-full overflow-hidden bg-[#35b565] flex items-center min-h-[400px] md:min-h-[500px]">
+    <section className="relative w-full overflow-hidden bg-[#35b565] flex items-center min-h-[400px] md:min-h-[500px] mt-20">
       {/* Background patterns from bgFree Trial.svg */}
       <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
         <Image

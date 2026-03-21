@@ -85,7 +85,7 @@ export default function FAQ() {
         </div> */}
 
       <div className="text-center">
-        <h3 className="text-2xl text-[#25B868] sm:text-3xl md:text-4xl lg:text-5xl font-extrabold pt-8 sm:pt-10 md:pt-12 lg:pt-14">
+        <h3 className="text-2xl text-[#25B868] sm:text-3xl md:text-4xl lg:text-5xl font-extrabold ">
           Frequently Asked Questions
         </h3>
       </div>

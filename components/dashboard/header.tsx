@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Header() {
   return (
-    <header className="flex justify-end items-center py-6 px-10 bg-transparent w-full">
+    <header className="flex justify-end items-center mt-6 px-10 bg-transparent w-full">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-teal-100 overflow-hidden relative flex-shrink-0 flex items-center justify-center border border-teal-200">
           {/* Avatar SVG fallback for the yellow chick from the mockup */}
@@ -13,7 +13,7 @@ export default function Header() {
             <path d="M11 11.5L12 12.5L13 11.5" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <span className="font-semibold text-gray-800 text-sm">Febrian Faiq</span>
+        <span className="font-bold text-black text-base lg:text-xl ">Febrian Faiq</span>
       </div>
     </header>
   );

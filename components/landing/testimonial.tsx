@@ -51,8 +51,8 @@ export default function Testimonial() {
   ];
 
   return (
-    <section className="w-full bg-[#f9fafb] py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
-      <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16">
+    <section className="w-full bg-[#f9fafb] py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden mt-20">
+      <div className="max-w-3xl mx-auto text-center mb-7 md:mb-16 lg:mb-7">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#3FC07B] mb-3 md:mb-4">
           Kata Mereka tentang Empathify
         </h2>

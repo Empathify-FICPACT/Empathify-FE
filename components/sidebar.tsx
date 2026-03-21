@@ -76,7 +76,7 @@ export default function Sidebar() {
         {/* Dasbor Section */}
         <div className="mb-6 lg:mb-8 flex flex-col items-stretch">
           {!isMinimized ? (
-            <h3 className="text-xs lg:text-lg font-extrabold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
+            <h3 className="text-sm lg:text-2xl font-extrabold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
               Dasbor
             </h3>
           ) : (
@@ -96,7 +96,7 @@ export default function Sidebar() {
             >
               <Image src="/dashboard/berandaIcon.svg" alt="Beranda" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
-                <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Beranda</span>
+                <span className="whitespace-nowrap overflow-hidden text-base lg:text-xl font-semibold">Beranda</span>
               )}
             </Link>
             <Link
@@ -112,7 +112,7 @@ export default function Sidebar() {
             >
               <Image src="/dashboard/LatihanIcon.svg" alt="Latihan" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
-                <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Latihan</span>
+                <span className="whitespace-nowrap overflow-hidden text-base lg:text-xl font-semibold">Latihan</span>
               )}
             </Link>
             <Link
@@ -128,7 +128,7 @@ export default function Sidebar() {
             >
               <Image src="/dashboard/MisiIcon.svg" alt="Misi" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
-                <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Misi</span>
+                <span className="whitespace-nowrap overflow-hidden text-base lg:text-xl font-semibold">Misi</span>
               )}
             </Link>
             <Link
@@ -144,7 +144,7 @@ export default function Sidebar() {
             >
               <Image src="/dashboard/PenghargaanIcon.svg" alt="Penghargaan" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
-                <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">
+                <span className="whitespace-nowrap overflow-hidden text-base lg:text-xl font-semibold">
                   Penghargaan
                 </span>
               )}
@@ -155,7 +155,7 @@ export default function Sidebar() {
         {/* Akun Section */}
         <div className="flex flex-col items-stretch mt-auto lg:mt-0">
           {!isMinimized ? (
-            <h3 className="text-xs lg:text-lg font-extrabold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
+            <h3 className="text-sm lg:text-2xl font-extrabold text-gray-900 mb-3 lg:mb-4 px-2 whitespace-nowrap overflow-hidden">
               Akun
             </h3>
           ) : (
@@ -163,15 +163,19 @@ export default function Sidebar() {
           )}
           <nav className="flex flex-col gap-1.5">
             <Link
-              href="#"
+              href="/dashboard/profile"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
-              } text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
+              } py-3 lg:py-3.5 rounded-xl font-medium transition-all ${
+                pathname === "/dashboard/profile" 
+                  ? "bg-[#2cb46c] text-white" 
+                  : "text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50"
+              }`}
               title={isMinimized ? "Profile" : undefined}
             >
               <Image src="/dashboard/ProfileIcon.svg" alt="Profile" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
-                <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Profile</span>
+                <span className="whitespace-nowrap overflow-hidden text-base lg:text-xl font-semibold">Profile</span>
               )}
             </Link>
             <Link
@@ -183,7 +187,7 @@ export default function Sidebar() {
             >
               <Image src="/dashboard/LogoutIcon.svg" alt="Keluar" width={30} height={30} className="w-10 h-10 flex-shrink-0 object-contain" />
               {!isMinimized && (
-                <span className="whitespace-nowrap overflow-hidden text-sm lg:text-base">Keluar</span>
+                <span className="whitespace-nowrap overflow-hidden text-base lg:text-xl font-semibold">Keluar</span>
               )}
             </Link>
           </nav>

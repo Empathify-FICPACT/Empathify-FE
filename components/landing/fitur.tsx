@@ -46,7 +46,7 @@ export default function Fitur() {
       <div className="container mx-auto px-4 lg:px-8 max-w-8xl">
         {/* Header Section */}
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#2cb46c] mb-4">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#2cb46c] mt-20 mb-4">
             Jelajahi Latihan Interaktif Kami
           </h2>
           <p className="text-[#555555] text-base md:text-lg lg:text-xl font-semibold">

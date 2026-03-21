@@ -3,7 +3,7 @@ import Badge from "./badge";
 
 export default function Misi() {
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
+    <div className="w-full max-w-[1740px] mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
       <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Right Sidebar - Badge Only */}
         <Badge showMisi={false} />
@@ -14,7 +14,7 @@ export default function Misi() {
             <h1 className="text-2xl md:text-[28px] font-bold text-gray-900">
               Misi Harian
             </h1>
-            <span className="text-sm mt-4 font-bold text-gray-900">
+            <span className="text-sm lg:text-base pr-3 pt-2  mt-4 font-bold text-gray-900">
               12 Jam 53 Menit
             </span>
           </div>
@@ -26,18 +26,18 @@ export default function Misi() {
                 <Image
                   src="/dashboard/MisiIcon.svg"
                   alt="Misi 1"
-                  width={48}
-                  height={48}
-                  className="object-contain w-10 h-10 lg:w-12 lg:h-12"
+                  width={60}
+                  height={60}
+                  className="object-contain w-10 h-10 lg:w-18 lg:h-18"
                 />
               </div>
               <div className="flex-grow flex flex-col justify-center">
-                <p className="text-sm lg:text-[15px] text-gray-900 font-bold leading-snug mb-2">
-                  Kumpulkan 30 XP hari ini
+                <p className="text-sm lg:text-xl text-gray-900 font-semibold leading-snug mb-2">
+                  Kumpulkan 30 Pingo Coin hari ini
                 </p>
                 <div className="w-full bg-[#d1d5db] rounded-full h-[22px] lg:h-6 relative flex items-center justify-center overflow-hidden">
                   <div className="absolute top-0 left-0 h-full bg-[#2cb46c] w-0"></div>
-                  <span className="relative z-10 text-[11px] lg:text-xs font-bold text-gray-900">
+                  <span className="relative z-10 text-xs lg:text-sm font-bold text-gray-900">
                     0/30
                   </span>
                 </div>
@@ -52,18 +52,18 @@ export default function Misi() {
                 <Image
                   src="/dashboard/MisiIcon2.svg"
                   alt="Misi 2"
-                  width={48}
-                  height={48}
-                  className="object-contain w-10 h-10 lg:w-12 lg:h-12"
+                  width={60}
+                  height={60}
+                  className="object-contain w-10 h-10 lg:w-18 lg:h-18"
                 />
               </div>
               <div className="flex-grow flex flex-col justify-center">
-                <p className="text-sm lg:text-[15px] text-gray-900 font-bold leading-snug mb-2">
+                <p className="text-sm lg:text-xl text-gray-900 font-semibold leading-snug mb-2">
                   Selesaikan 2 latihan sampai selesai
                 </p>
                 <div className="w-full bg-[#d1d5db] rounded-full h-[22px] lg:h-6 relative flex items-center justify-center overflow-hidden">
                   <div className="absolute top-0 left-0 h-full bg-[#2cb46c] w-0"></div>
-                  <span className="relative z-10 text-[11px] lg:text-xs font-bold text-gray-900">
+                  <span className="relative z-10 text-[11px] text-xs lg:text-sm  font-bold text-gray-900">
                     0/2
                   </span>
                 </div>
@@ -78,18 +78,18 @@ export default function Misi() {
                 <Image
                   src="/pinguin/CaptainPingo.svg"
                   alt="Misi 3"
-                  width={48}
-                  height={48}
-                  className="object-contain w-10 h-10 lg:w-12 lg:h-12"
+                  width={60}
+                  height={60}
+                  className="object-contain w-10 h-10 lg:w-18 lg:h-18 "
                 />
               </div>
               <div className="flex-grow flex flex-col justify-center">
-                <p className="text-sm lg:text-[15px] text-gray-900 font-bold leading-snug mb-2">
+                <p className="text-sm lg:text-xl text-gray-900 font-semibold leading-snug mb-2">
                   Lakukan Percakapan Singkat dengan Pingo
                 </p>
                 <div className="w-full bg-[#d1d5db] rounded-full h-[22px] lg:h-6 relative flex items-center justify-center overflow-hidden">
                   <div className="absolute top-0 left-0 h-full bg-[#2cb46c] w-0"></div>
-                  <span className="relative z-10 text-[11px] lg:text-xs font-bold text-gray-900">
+                  <span className="relative z-10 text-[11px] text-xs lg:text-sm  font-bold text-gray-900">
                     0/1
                   </span>
                 </div>
