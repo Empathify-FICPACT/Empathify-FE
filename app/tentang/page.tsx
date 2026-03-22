@@ -3,7 +3,7 @@ import TeamCard from "../components/Card";
 
 export default function TentangPage() {
   return (
-    <div className="bg-gray-100">
+    <div className="bg-[rgba(245,245,245,1)]">
 
       {/* HERO */}
       <section className="bg-[#25B868] px-[30px] py-16 flex items-center justify-between relative overflow-hidden">
