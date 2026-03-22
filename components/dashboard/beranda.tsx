@@ -19,6 +19,14 @@ export default function Beranda() {
     { title: "Mengenal Ekspresi", date: "28/01/2026 · 12:14", xp: 10 },
   ];
 
+  const getRoutePath = (title: string) => {
+    if (title === "Cerita Interaktif") return "Interaktif";
+    if (title === "Memahami Emosi") return "Emosi";
+    if (title === "Mengenal Ekspresi") return "Ekspresi";
+    if (title === "Simulasi Percakapan") return "SimulasiPercakapan";
+    return "Interaktif";
+  };
+
   return (
     <div className="w-full max-w-[1740px] mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
       <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-start relative">
@@ -119,14 +127,16 @@ export default function Beranda() {
             <h2 className="text-base md:text-lg lg:text-2xl font-bold text-gray-900">
               Riwayat Latihan
             </h2>
-            <button className="text-base md:text-base lg:text-lg pr-6 font-semibold text-gray-900 hover:text-[#2cb46c] transition-colors">
-              Lihat Semua
-            </button>
+            <Link href="/dashboard/riwayat">
+              <button className="text-base md:text-base lg:text-lg pr-6 font-semibold text-gray-900 hover:text-[#2cb46c] transition-colors">
+                Lihat Semua
+              </button>
+            </Link>
           </div>
 
           {/* Training History List */}
           <div className="bg-white border border-gray-200 rounded-[24px] flex flex-col shadow-sm">
-            {riwayatLatihan.map((item, idx) => (
+            {riwayatLatihan.slice(0, 3).map((item, idx) => (
               <div
                 key={idx}
                 className={`flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 gap-6 ${
@@ -171,9 +181,11 @@ export default function Beranda() {
                     </div>
                   </div>
                 </div>
-                <button className="text-sm md:text-sm lg:text-xl px-8 py-3 w-full lg:w-auto bg-[#2cb46c] text-white font-bold rounded-xl hover:bg-[#259b5c] transition-colors whitespace-nowrap">
-                  Lihat
-                </button>
+                <Link href={`/latihan/${getRoutePath(item.title)}?review=true`}>
+                  <button className="text-sm md:text-sm lg:text-xl px-8 py-3 w-full lg:w-auto bg-[#2cb46c] text-white font-bold rounded-xl hover:bg-[#259b5c] transition-colors whitespace-nowrap">
+                    Lihat
+                  </button>
+                </Link>
               </div>
             ))}
           </div>

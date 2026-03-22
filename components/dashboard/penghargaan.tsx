@@ -3,11 +3,11 @@ import Badge from "./badge";
 
 export default function Penghargaan() {
   const penghargaanList = [
-    { id: 1, title: "Pemula", progress: "0 / 10", percentage: 0 },
-    { id: 2, title: "Penjelajah", progress: "0 / 10", percentage: 0 },
-    { id: 3, title: "Jagoan", progress: "0 / 10", percentage: 0 },
-    { id: 4, title: "Raja", progress: "0 / 10", percentage: 0 },
-    { id: 5, title: "Master", progress: "0 / 10", percentage: 0 },
+    { id: 1, title: "Pemula", progress: "0 / 10", percentage: 0, image: "/penghargaan/Pemula.svg" },
+    { id: 2, title: "Penjelajah", progress: "0 / 10", percentage: 0, image: "/penghargaan/Penjelajah.svg" },
+    { id: 3, title: "Jagoan", progress: "0 / 10", percentage: 0, image: "/penghargaan/Jagoan.svg" },
+    { id: 4, title: "Raja", progress: "0 / 10", percentage: 0, image: "/penghargaan/Raja.svg" },
+    { id: 5, title: "Master", progress: "0 / 10", percentage: 0, image: "/penghargaan/Master.svg" },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default function Penghargaan() {
               >
                 <div className="mb-4">
                   <Image
-                    src="/icon/PenghargaanSimbol.svg"
+                    src={item.image}
                     alt={item.title}
                     width={96}
                     height={96}

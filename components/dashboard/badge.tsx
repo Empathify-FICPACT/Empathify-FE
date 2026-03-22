@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 interface RightSidebarProps {
   showMisi?: boolean;
@@ -34,9 +35,11 @@ export default function RightSidebar({ showMisi = true }: RightSidebarProps) {
             <h3 className="text-[#2cb46c] font-bold text-base md:text-lg lg:text-2xl">
               Misi Harian
             </h3>
-            <button className="text-sm md:text-sm lg:text-base text-gray-900 font-bold hover:text-green-500 transition-colors">
-              Lihat Semua
-            </button>
+           <Link href="/dashboard/misi">
+              <button className="text-sm md:text-sm lg:text-base text-gray-900 font-bold hover:text-green-500 transition-colors">
+                Lihat Semua
+              </button>
+            </Link>
           </div>
           <div className="flex gap-4 items-start">
             <div className="flex-shrink-0 pt-1">

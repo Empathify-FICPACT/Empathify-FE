@@ -179,7 +179,7 @@ export default function Sidebar() {
               )}
             </Link>
             <Link
-              href="#"
+              href="/landing"
               className={`flex items-center ${
                 isMinimized ? "justify-center px-0" : "gap-3 lg:gap-4 px-3 lg:px-4"
               } text-[#8E8E8E] hover:text-[#259b5d] hover:bg-green-50 py-3 lg:py-3.5 rounded-xl font-medium transition-all`}
