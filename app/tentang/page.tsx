@@ -138,7 +138,7 @@ export default function TentangPage() {
       <section className="px-0 py-0 mt-16 max-w-[1400px] mx-auto">
 
         {/* TITLE */}
-        <div className="space-y-15">
+        <div className="space-y-25">
           <h2 className="text-[46px] font-extrabold text-[rgba(37,184,104,1)] font-[Nunito]">
             Profil Tim
           </h2>
