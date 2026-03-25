@@ -13,7 +13,7 @@ export default function CTA() {
         <p className="text-base sm:text-lg md:text-xl text-gray-500 font-medium mb-8 md:mb-10">
           Kapan saja, di mana saja, tanpa batas
         </p>
-        <Link href="/dashboard/latihan">
+        <Link href="/login">
           <button className="bg-[#ffc107] hover:bg-[#ffb300] text-white font-bold py-3 md:py-3.5 px-8 md:px-12 rounded-full border-[3px] border-yellow-200 shadow-md hover:shadow-lg transition-all text-base md:text-lg">
             Mulai Sekarang!
           </button>

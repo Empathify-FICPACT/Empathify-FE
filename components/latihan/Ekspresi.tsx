@@ -1,43 +1,234 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Camera, RefreshCcw, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Header from "./header";
+import { apiFetch } from "@/utils/api";
+
+interface ExpressionData {
+  id: string;
+  emotion: string;
+  image_url: string;
+  order: number;
+}
 
 export default function Ekspresi() {
-  // State: 'intro' | 'observe' | 'camera' | 'review' | 'analysis' | 'result'
   const [step, setStep] = useState<'intro' | 'observe' | 'camera' | 'review' | 'analysis' | 'result'>('intro');
   const [showExitPopup, setShowExitPopup] = useState(false);
-  const [isReviewMode, setIsReviewMode] = useState(false);
+
+  // Mapping for emotion enum from backend
+  const emotionTranslation: Record<string, string> = {
+    happy: "Senang",
+    angry: "Marah",
+    sad: "Sedih",
+    surprised: "Terkejut",
+    disgusted: "Jijik",
+    fear: "Takut",
+    fearful: "Takut",
+    neutral: "Biasa",
+  };
+
+  const translateEmotion = (emotion: string) => {
+    return emotionTranslation[emotion.toLowerCase()] || emotion.toUpperCase();
+  };
+
   const router = useRouter();
 
+  // Integrasi API & Logic
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [expressions, setExpressions] = useState<ExpressionData[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Camera & Image logic
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
+  const [capturedUrl, setCapturedUrl] = useState<string | null>(null);
+
+  // Hasil Analysis
+  const [feedback, setFeedback] = useState<{ isCorrect: boolean; score: number; message: string } | null>(null);
+  
+  // Custom cleanup effect to make sure camera turns off when unmounting
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('review') === 'true') {
-        setStep('analysis');
-        setIsReviewMode(true);
-      }
-    }
+    return () => {
+      stopCamera();
+    };
   }, []);
 
-  const handleNext = (nextStep: any) => {
-    setStep(nextStep);
+  // Ensure video element gets the stream when it mounts (step === 'camera')
+  useEffect(() => {
+    if (step === 'camera' && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [step, stream]);
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
   };
 
   const getProgressWidth = () => {
-    switch(step) {
-      case 'observe': return '20%';
-      case 'camera': return '40%';
-      case 'review': return '60%';
-      case 'analysis': return '80%';
-      default: return '0%';
+    if (expressions.length === 0) return '0%';
+    const baseProgress = (currentIndex / expressions.length) * 100;
+    
+    const stepProgress = 
+      step === 'observe' ? 5 : 
+      step === 'camera' ? 10 : 
+      step === 'review' ? 15 : 
+      step === 'analysis' ? 20 : 0;
+      
+    return `${Math.min(baseProgress + stepProgress, 100)}%`;
+  };
+
+  const handleStartSession = async () => {
+    setIsLoading(true);
+    try {
+      const res = await apiFetch("/api/v1/expression/sessions", {
+        method: "POST",
+        body: JSON.stringify({ total_expressions: 3 }), 
+      });
+      const data = await res.json();
+      if (data.meta?.success && data.data) {
+        setSessionId(data.data.id);
+        const sortedExp = data.data.expressions.sort((a: any, b: any) => a.order - b.order);
+        setExpressions(sortedExp);
+        setCurrentIndex(0);
+        setStep("observe");
+      } else {
+        alert("Gagal memulai sesi latihan ekspresi.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan sistem saat menghubungi server.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // --- RENDERS ---
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      setStream(mediaStream);
+      setStep("camera");
+    } catch (err) {
+      console.error("Camera access denied:", err);
+      alert("Gagal mengakses kamera. Mohon izinkan akses kamera pada browser Anda.");
+    }
+  };
+
+  const takePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          setCapturedBlob(blob);
+          const url = URL.createObjectURL(blob);
+          setCapturedUrl(url);
+          stopCamera();
+          setStep("review");
+        }
+      }, "image/jpeg", 0.9);
+    }
+  };
+
+  const retakePhoto = () => {
+    if (capturedUrl) URL.revokeObjectURL(capturedUrl);
+    setCapturedBlob(null);
+    setCapturedUrl(null);
+    startCamera();
+  };
+
+  const retryPhotoAfterAnalysis = () => {
+    setFeedback(null);
+    retakePhoto();
+  };
+
+  const submitPhoto = async () => {
+    if (!capturedBlob || !sessionId || expressions.length === 0) return;
+    
+    setStep("analysis");
+    setIsLoading(true);
+    setFeedback(null);
+
+    const currentExpression = expressions[currentIndex];
+    const formData = new FormData();
+    formData.append("reference_id", currentExpression.id);
+    formData.append("photo", new File([capturedBlob], "attempt.jpg", { type: "image/jpeg" }));
+
+    try {
+      const res = await apiFetch(`/api/v1/expression/sessions/${sessionId}/attempts`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.meta?.success && data.data) {
+        setFeedback({
+          isCorrect: data.data.is_correct,
+          score: Math.round(data.data.similarity_score * 100),
+          message: data.data.ai_feedback || "Ekspresi dianalisa dengan sukses."
+        });
+      } else {
+        setFeedback({
+          isCorrect: false,
+          score: 0,
+          message: data.meta?.message || "Gagal menganalisa ekspresi."
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setFeedback({
+        isCorrect: false,
+        score: 0,
+        message: "Terjadi gangguan jaringan saat menganalisa."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const nextAction = async () => {
+    if (currentIndex + 1 < expressions.length) {
+      setCurrentIndex(currentIndex + 1);
+      if (capturedUrl) URL.revokeObjectURL(capturedUrl);
+      setCapturedBlob(null);
+      setCapturedUrl(null);
+      setFeedback(null);
+      setStep("observe");
+    } else {
+      setIsLoading(true);
+      try {
+        await apiFetch(`/api/v1/expression/sessions/${sessionId}/complete`, {
+          method: "PATCH"
+        });
+        setStep("result");
+      } catch (err) {
+        console.error(err);
+        setStep("result");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   if (step === 'intro') {
     return (
@@ -66,17 +257,18 @@ export default function Ekspresi() {
                 </h2>
                 <ul className="list-disc pl-6 text-gray-400 font-medium text-xs sm:text-sm md:text-base space-y-1.5">
                   <li>Perhatikan ekspresi yang ditampilkan</li>
-                  <li>Tirukan ekspresi tersebut</li>
+                  <li>Tirukan ekspresi tersebut sebaik mungkin</li>
                   <li>Ambil foto untuk melihat hasilnya</li>
                 </ul>
               </div>
             </div>
 
             <button 
-              onClick={() => handleNext('observe')}
-              className="bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-full border-[3px] border-yellow-100 shadow-sm transition-all text-sm md:text-lg"
+              onClick={handleStartSession}
+              disabled={isLoading}
+              className={`bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-full border-[3px] border-yellow-100 shadow-sm transition-all text-sm md:text-lg ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
             >
-              Mulai Sekarang!
+              {isLoading ? "Memuat..." : "Mulai Sekarang!"}
             </button>
           </div>
         </main>
@@ -87,14 +279,12 @@ export default function Ekspresi() {
   if (step === 'result') {
     return (
       <div className="flex flex-col min-h-screen bg-[#f9fafb]">
-        {/* HARUS ADA HEADER JUGA */}
-        <Header buttonText="Kembali" onButtonClick={() => setStep('intro')} />
+        <Header buttonText="Kembali" onButtonClick={() => router.push('/dashboard/beranda')} />
 
         <main 
           className="relative w-full flex-1 flex flex-col px-4 pt-4 pb-12 md:pt-8 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('/background/BgLatihan.svg')" }}
         >
-          {/* TANPA CARD TAMBAHAN */}
           <div className="z-10 flex flex-col items-center max-w-5xl mx-auto w-full mt-2 md:mt-4 lg:mt-6">
             
             <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-8 md:mb-12">
@@ -106,50 +296,16 @@ export default function Ekspresi() {
                 Latihan Kamu Selesai!
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-gray-500 font-medium mb-8 md:mb-12 text-center max-w-xl">
-                Pingo bangga sama kamu, sampai jumpa di latihan berikutnya!
+                Pingo bangga sama kamu, kemampuan ekspresimu semakin mantap!
               </p>
-
-              <div className="flex flex-col sm:flex-row gap-5 md:gap-6 w-full justify-center px-4">
-                <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 max-w-[280px]">
-                  <div className="bg-[#fff8e1] p-2 md:p-3 rounded-full flex shrink-0 border border-yellow-100">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ffc107] shadow-sm flex items-center justify-center text-white font-black text-sm md:text-base">P</div>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">Pingo Coin</p>
-                    <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">15 Coin</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 max-w-[280px]">
-                  <div className="shrink-0">
-                    <Zap className="w-12 h-12 md:w-14 md:h-14 text-[#ffc107] fill-[#ffc107]" strokeWidth={1} />
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">Akurasi</p>
-                    <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">75%</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            <div className="w-full flex justify-between items-center px-4 md:px-10 mt-2 md:mt-4">
+            <div className="w-full flex justify-center items-center px-4 md:px-10 mt-2 md:mt-4">
               <button 
-                onClick={() => {
-                  setStep('analysis');
-                  setIsReviewMode(true);
-                }}
-                className="text-[#2cb46c] bg-[#eafff2] hover:bg-[#d5fce4] font-extrabold py-3.5 sm:py-4 px-6 sm:px-10 md:px-14 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto"
+                onClick={() => router.push('/dashboard/beranda')}
+                className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-12 sm:px-16 md:px-20 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
               >
-                Lihat Jawaban
-              </button>
-              <button 
-                onClick={() => {
-                  setStep('intro');
-                  setIsReviewMode(false);
-                }}
-                className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-8 sm:px-12 md:px-16 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
-              >
-                Selesai
+                Kembali ke Beranda
               </button>
             </div>
           </div>
@@ -158,11 +314,9 @@ export default function Ekspresi() {
     );
   }
 
-  // Common steps: observe, camera, review, analysis
   return (
     <div className="flex flex-col min-h-screen bg-[#f9fafb]">
-      {/* HEADER JUGA DISINI SAMA SEPERTI SIMULASI PERCAKAPAN */}
-      <Header buttonText={isReviewMode ? "Kembali" : "Akhiri"} onButtonClick={() => { if (isReviewMode) { setIsReviewMode(false); setStep('result'); } else { setShowExitPopup(true); } }} />
+      <Header buttonText="Akhiri" onButtonClick={() => setShowExitPopup(true)} />
 
       <main 
         className="relative w-full flex-1 flex flex-col items-center px-4 pt-10 pb-8 bg-cover bg-center bg-no-repeat"
@@ -179,41 +333,39 @@ export default function Ekspresi() {
               <ArrowLeft className="w-6 h-6 md:w-8 md:h-8" />
             </button>
             <div className="flex-1 h-3 md:h-4 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-[#2cb46c] rounded-full transition-all duration-300" style={{ width: getProgressWidth() }}></div>
+              <div className="h-full bg-[#2cb46c] rounded-full transition-all duration-500" style={{ width: getProgressWidth() }}></div>
             </div>
           </div>
 
-          {step === 'observe' && (
+          {step === 'observe' && expressions.length > 0 && (
             <div className="flex flex-col flex-1 pb-4">
               <h3 className="text-gray-600 font-medium text-sm md:text-base mb-4 md:mb-5 text-center">
                 Perhatikan ekspresi di bawah ini, lalu tirukan menggunakan kamera
               </h3>
 
               <div className="w-full max-w-2xl mx-auto bg-gray-100 rounded-[20px] md:rounded-[24px] overflow-hidden mb-6 aspect-video flex items-center justify-center relative shadow-sm">
-                <div className="absolute inset-0 flex items-center justify-center p-8 bg-blue-50/50">
-                  <span className="text-gray-400 font-medium italic text-center">
-                    [ Gambar Referensi Wanita Mockup ]
-                  </span>
-                </div>
+                <Image 
+                  src={expressions[currentIndex].image_url} 
+                  alt={expressions[currentIndex].emotion} 
+                  fill 
+                  className="object-contain" 
+                  unoptimized 
+                />
               </div>
 
-              <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 md:p-8 w-full max-w-2xl mx-auto mb-8">
-                <h4 className="text-[#2cb46c] font-bold text-lg md:text-xl mb-2">Lelah</h4>
-                <p className="text-gray-700 font-medium text-sm md:text-base leading-relaxed">
-                  Kondisi ketika seseorang merasa capek setelah melakukan aktivitas. Biasanya wajah terlihat lesu dan tubuh terasa kurang bertenaga.
-                </p>
+              <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 md:p-8 w-full max-w-2xl mx-auto mb-8 text-center">
+                <h4 className="text-[#2cb46c] font-bold text-lg md:text-xl uppercase tracking-widest">
+                  {translateEmotion(expressions[currentIndex].emotion)}
+                </h4>
               </div>
 
-              <div className="flex justify-between items-center w-full max-w-2xl mx-auto mt-6 md:mt-8 pt-4">
+              <div className="flex justify-center items-center w-full max-w-2xl mx-auto mt-6 md:mt-8 pt-4">
                 <button 
-                  onClick={() => handleNext('camera')}
-                  className="flex items-center gap-2 bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 text-white font-bold py-3 md:py-4 px-6 md:px-10 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0"
+                  onClick={startCamera}
+                  className="flex items-center gap-2 bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 text-white font-bold py-3 md:py-4 px-8 md:px-12 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0"
                 >
                   <Camera className="w-5 h-5 md:w-6 md:h-6" />
-                  Ambil Gambar
-                </button>
-                <button disabled className="bg-gray-300 text-white font-bold py-3 md:py-4 px-8 md:px-12 rounded-2xl cursor-not-allowed text-sm md:text-base shadow-sm">
-                  Kirim
+                  Buka Kamera
                 </button>
               </div>
             </div>
@@ -222,20 +374,26 @@ export default function Ekspresi() {
           {step === 'camera' && (
             <div className="flex flex-col flex-1 pb-4">
               <h3 className="text-gray-600 font-medium text-sm md:text-base mb-4 md:mb-5 text-center">
-                Pastikan wajah Anda terlihat dengan jelas
+                Pastikan wajah Anda terlihat dengan jelas untuk ekspresi: 
+                <span className="font-bold text-[#2cb46c] ml-1 uppercase">
+                  {translateEmotion(expressions[currentIndex]?.emotion || '')}
+                </span>
               </h3>
 
-              <div className="w-full max-w-2xl mx-auto bg-gray-50 rounded-[20px] md:rounded-[24px] overflow-hidden mb-8 aspect-video flex items-center justify-center relative shadow-sm border border-gray-200">
-                <div className="absolute inset-0 flex items-center justify-center p-8">
-                  <span className="text-gray-400 font-medium italic text-center">
-                    [ Tampilan Kamera Aktif Mockup ]
-                  </span>
-                </div>
+              <div className="w-full max-w-2xl mx-auto bg-black rounded-[20px] md:rounded-[24px] overflow-hidden mb-8 aspect-video flex items-center justify-center relative shadow-sm border border-gray-200">
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="w-full h-full object-cover transform -scale-x-100" 
+                />
+                <canvas ref={canvasRef} className="hidden" />
               </div>
 
               <div className="flex justify-center items-center w-full max-w-2xl mx-auto mt-6 md:mt-8 pt-4">
                 <button 
-                  onClick={() => handleNext('review')}
+                  onClick={takePhoto}
                   className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 rounded-full shadow-md transition-all border-4 border-yellow-200"
                 >
                   <Camera className="w-7 h-7 md:w-9 md:h-9 text-white" />
@@ -247,27 +405,25 @@ export default function Ekspresi() {
           {step === 'review' && (
             <div className="flex flex-col flex-1 pb-4">
               <h3 className="text-gray-600 font-medium text-sm md:text-base mb-4 md:mb-5 text-center">
-                Pastikan wajah Anda terlihat dengan jelas
+                Apakah gambar ini sudah cukup mewakili ekspresi <span className="uppercase font-bold">{translateEmotion(expressions[currentIndex]?.emotion || '')}</span>?
               </h3>
 
               <div className="w-full max-w-2xl mx-auto bg-gray-100 rounded-[20px] md:rounded-[24px] overflow-hidden mb-8 aspect-video flex items-center justify-center relative shadow-sm border border-gray-200">
-                <div className="absolute inset-0 flex items-center justify-center p-8 bg-blue-50/50">
-                  <span className="text-gray-400 font-medium italic text-center">
-                    [ Hasil Jepretan Kamera Mockup ]
-                  </span>
-                </div>
+                {capturedUrl && (
+                  <Image src={capturedUrl} alt="Hasil Kamera" fill className="object-cover transform -scale-x-100" unoptimized />
+                )}
               </div>
 
               <div className="flex justify-between items-center w-full max-w-2xl mx-auto mt-6 md:mt-8 pt-4">
                 <button 
-                  onClick={() => handleNext('camera')}
+                  onClick={retakePhoto}
                   className="flex items-center gap-2 bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 text-white font-bold py-3 md:py-4 px-6 md:px-10 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0"
                 >
                   <RefreshCcw className="w-5 h-5 md:w-6 md:h-6" />
-                  Ambil Ulang
+                  Ulang
                 </button>
                 <button 
-                  onClick={() => handleNext('analysis')}
+                  onClick={submitPhoto}
                   className="bg-[#2cb46c] hover:bg-[#259b5d] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0"
                 >
                   Kirim
@@ -279,42 +435,54 @@ export default function Ekspresi() {
           {step === 'analysis' && (
             <div className="flex flex-col flex-1 pb-4">
               <h3 className="text-gray-600 font-medium text-sm md:text-base mb-4 md:mb-5 text-center">
-                Perhatikan ekspresi di bawah ini, lalu tirukan menggunakan kamera
+                Hasil Analisa Ekspresi Wajahmu
               </h3>
 
-              <div className="w-full max-w-2xl mx-auto bg-gray-100 rounded-[20px] md:rounded-[24px] overflow-hidden mb-6 aspect-video flex items-center justify-center relative shadow-sm border border-gray-200">
-                <div className="absolute inset-0 flex items-center justify-center p-8 bg-blue-50/50">
-                  <span className="text-gray-400 font-medium italic text-center">
-                    [ Hasil Jepretan Kamera Mockup ]
-                  </span>
-                </div>
+              <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center p-12 bg-white rounded-3xl shadow-sm w-full border border-gray-100 min-h-[300px]">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2ECA7B] mb-6"></div>
+                    <p className="text-gray-600 font-medium animate-pulse">Pingo sedang menganalisa fotomu...</p>
+                  </div>
+                ) : feedback ? (
+                  <div className={`w-full bg-white rounded-[24px] shadow-sm border-2 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ${feedback.isCorrect ? 'border-green-200' : 'border-red-200'}`}>
+                    <div className="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
+                      <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-white font-black text-xl shrink-0 ${feedback.isCorrect ? 'bg-[#2cb46c]' : 'bg-[#EF4444]'}`}>
+                        {feedback.score}%
+                      </div>
+                      <div className="flex flex-col">
+                        <h4 className={`font-black text-lg md:text-xl ${feedback.isCorrect ? 'text-[#2cb46c]' : 'text-[#EF4444]'}`}>
+                          {feedback.isCorrect ? 'Hebat, Sangat Mirip!' : 'Masih Kurang Tepat, Jangan Menyerah!'}
+                        </h4>
+                        <p className="text-gray-500 font-medium text-sm">Target ekspresi: <span className="uppercase font-bold text-gray-700">{translateEmotion(expressions[currentIndex]?.emotion || '')}</span></p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-700 font-medium text-sm md:text-base leading-relaxed whitespace-pre-line bg-gray-50 rounded-xl p-4 md:p-5">
+                      {feedback.message}
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
-              <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 md:p-8 w-full max-w-2xl mx-auto mb-8">
-                <p className="text-gray-700 font-medium text-sm md:text-base leading-relaxed">
-                  Hasil analisa blablablablabla
-                </p>
-              </div>
-
-              <div className="flex flex-row-reverse items-center w-full max-w-2xl mx-auto mt-2 md:mt-4 pt-4">
-                {isReviewMode ? (
+              <div className="flex flex-col sm:flex-row justify-center items-center w-full max-w-2xl mx-auto mt-6 md:mt-8 pt-4 gap-4">
+                {feedback?.isCorrect === false && (
                   <button 
-                    onClick={() => {
-                      setStep('result');
-                      setIsReviewMode(false);
-                    }}
-                    className="bg-[#2cb46c] hover:bg-[#259b5d] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0"
+                    disabled={isLoading}
+                    onClick={retryPhotoAfterAnalysis}
+                    className={`flex items-center justify-center gap-2 bg-white border-[3px] border-[#ffc107] text-[#f5b000] hover:bg-[#fff9e6] active:scale-95 font-bold py-3 md:py-4 px-6 md:px-10 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0 ${isLoading ? 'opacity-50 cursor-not-allowed hidden' : ''}`}
                   >
-                    Kembali ke Hasil
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => handleNext('result')}
-                    className="bg-[#2cb46c] hover:bg-[#259b5d] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0"
-                  >
-                    Selanjutnya
+                    <RefreshCcw className="w-5 h-5 md:w-6 md:h-6" />
+                    Coba Lagi
                   </button>
                 )}
+                <button 
+                  disabled={isLoading}
+                  onClick={nextAction}
+                  className={`bg-[#2cb46c] hover:bg-[#259b5d] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-2xl shadow-sm transition-all text-sm md:text-base -translate-y-0.5 active:translate-y-0 ${isLoading ? 'opacity-50 cursor-not-allowed hidden' : ''}`}
+                >
+                  {currentIndex + 1 < expressions.length ? "Lanjut Ekspresi Selanjutnya" : "Selesaikan Latihan"}
+                </button>
               </div>
             </div>
           )}
@@ -336,8 +504,8 @@ export default function Ekspresi() {
             <div className="flex w-full gap-3 sm:gap-4">
               <button 
                 onClick={() => {
-                  setShowExitPopup(false);
-                  setStep('intro');
+                  stopCamera();
+                  router.push('/dashboard/beranda');
                 }}
                 className="flex-1 bg-[#eafff2] text-[#2cb46c] hover:bg-[#d5fce4] font-extrabold py-3 sm:py-3.5 rounded-2xl transition-colors text-sm sm:text-base"
               >

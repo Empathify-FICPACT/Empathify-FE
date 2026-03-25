@@ -2,9 +2,55 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function Login() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Email dan kata sandi wajib diisi.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("https://empathify-be-staging.fly.dev/api/v1/auth/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.meta?.success) {
+        throw new Error(data.meta?.message || "Login gagal, periksa kredensial Anda.");
+      }
+
+      const token = data.data.access_token;
+      Cookies.set("access_token", token, { expires: 7 }); // expires in 7 days
+      
+      router.push("/dashboard/beranda");
+    } catch (err: any) {
+      setError(err.message || "Terjadi kesalahan sistem.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = () => {
+    window.location.href = "https://empathify-be-staging.fly.dev/api/v1/auth/google/";
+  };
 
   return (
     <div
@@ -15,6 +61,7 @@ export default function Login() {
       <div className="absolute top-0 left-0 w-full flex justify-between items-center px-4 py-4 md:px-8 md:py-6 z-20">
         <div className="flex items-center gap-2 md:gap-4">
           {/* Close Icon */}
+          <Link href="/landing">
           <button
             aria-label="Tutup"
             className="p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
@@ -34,6 +81,7 @@ export default function Login() {
               />
             </svg>
           </button>
+          </Link>
 
           {/* Logo */}
           <div className="relative h-6 md:h-9 w-[120px] md:w-[150px]">
@@ -48,10 +96,12 @@ export default function Login() {
         </div>
 
         {/* Register Button */}
-        <button className="bg-[#E9F8F0] text-[#2ECA7B] px-5 py-2 md:px-8 md:py-2.5 rounded-2xl shadow-xl font-bold hover:bg-green-50 transition-colors text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-white">
-          
-          Daftar
-        </button>
+        <Link href="/register">
+          <button className="bg-[#E9F8F0] text-[#2ECA7B] px-5 py-2 md:px-8 md:py-2.5 rounded-2xl shadow-xl font-bold hover:bg-green-50 transition-colors text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-white">
+            
+            Daftar
+          </button>
+        </Link>
       </div>
 
       {/* Main Login Card */}
@@ -60,11 +110,19 @@ export default function Login() {
           Masuk Akun
         </h2>
 
-        <form className="space-y-3 sm:space-y-4" onSubmit={(e) => e.preventDefault()}>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-200">
+            {error}
+          </div>
+        )}
+
+        <form className="space-y-3 sm:space-y-4" onSubmit={handleLogin}>
           {/* Email Input */}
           <div>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Masukkan Email"
               className="w-full px-4 py-2.5 sm:py-3 rounded-xl border text-black border-gray-200 outline-none focus:border-[#2ECA7B] focus:ring-1 focus:ring-[#2ECA7B] text-gray-700 placeholder:text-gray-500 text-xs sm:text-sm transition-all"
             />
@@ -74,6 +132,8 @@ export default function Login() {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Masukkan Kata Sandi"
               className="w-full px-4 py-2.5 sm:py-3 rounded-xl border   border-gray-200 outline-none focus:border-[#2ECA7B] focus:ring-1 focus:ring-[#2ECA7B] text-gray-700 placeholder:text-gray-500 text-xs sm:text-sm transition-all pr-12"
             />
@@ -158,9 +218,10 @@ export default function Login() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-[#2ECA7B] hover:bg-[#25a866] text-white font-bold py-2.5 sm:py-3.5 px-4 rounded-xl transition-colors shadow-sm text-sm sm:text-base mt-2"
+            disabled={loading}
+            className={`w-full bg-[#2ECA7B] hover:bg-[#25a866] text-white font-bold py-2.5 sm:py-3.5 px-4 rounded-xl transition-colors shadow-sm text-sm sm:text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            Masuk
+            {loading ? "Masuk..." : "Masuk"}
           </button>
         </form>
 
@@ -176,6 +237,7 @@ export default function Login() {
         {/* Google Login */}
         <button
           type="button"
+          onClick={handleGoogleAuth}
           className="w-full flex items-center justify-center gap-3 bg-gray-50/80 border border-gray-200 hover:bg-gray-100 text-gray-800 font-bold py-3.5 px-4 rounded-xl transition-colors mb-6 shadow-sm"
         >
           <svg

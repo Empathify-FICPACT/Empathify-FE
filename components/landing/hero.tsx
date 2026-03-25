@@ -18,7 +18,7 @@ export default function Hero() {
             cara yang lebih seru dan interaktif.
           </p>
           
-          <Link href="/dashboard/latihan">
+          <Link href="/login">
             <button className="bg-[#ffc107] hover:bg-[#ffb300] text-white font-bold py-3 md:py-3.5 px-8 md:px-12 rounded-full border-[3px] border-yellow-200 shadow-md hover:shadow-lg transition-all text-base md:text-lg mx-auto md:mx-0">
               Mulai Belajar, Yuk
             </button>
