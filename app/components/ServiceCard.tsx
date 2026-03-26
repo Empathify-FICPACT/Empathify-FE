@@ -31,7 +31,9 @@ export default function ServiceCard({
         {/* BUTTON */}
         <button
           onClick={onClick}
-          className="absolute bottom-[-100px] w-[230px] h-[60px] flex items-center justify-center bg-[#FFC200] text-[#E9F8F0] text-[24px] font-bold rounded-[50px] border-[5px] border-[#FFDE00] shadow-[0px_0px_4px_rgba(0,0,0,0.5)]"
+          className="absolute bottom-[-100px] w-[230px] h-[60px] flex items-center justify-center 
+          bg-[#FFC200] text-[#E9F8F0] text-[24px] font-bold rounded-[50px] border-[5px] border-[#FFDE00] shadow-[0px_0px_4px_rgba(0,0,0,0.5)]
+          hover:scale-105 transition active:scale-95"
         >
           Lihat Detail
         </button>
