@@ -37,6 +37,9 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(url, {
     ...options,
     headers,
+    // Always include cookies so backend session cookie can be used
+    // even when token is not readable from JS (e.g. HttpOnly cookie).
+    credentials: options.credentials ?? "include",
   });
 
   return response;
