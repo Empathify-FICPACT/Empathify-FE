@@ -1,39 +1,102 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { FaBars, FaTimes } from "react-icons/fa";
+
+const navItems = [
+  { label: "Beranda", href: "/landing" },
+  { label: "Layanan", href: "/layanan" },
+  { label: "Tentang Kami", href: "/tentang" },
+];
 
 export default function Header() {
-  return (
-    <header className="w-full bg-[#25B868] flex justify-center">
-      
-      <div className="w-full max-w-[1920px] min-h-[70px] flex items-center justify-between px-10">
-        
-        {/* KIRI: pokoknya yg logo ama menu ntuh*/}
-        <div className="flex items-center gap-5">
-          <Image src="/logo/Logo putih.svg" alt="Logo" width={120} height={32} />
+  const [isOpen, setIsOpen] = useState(false);
 
-          <nav className="flex gap-5 text-white text-[14px] font-bold">
-            <Link href="/landing" className="hover:text-green-100 transition-colors">Beranda</Link>
-            <Link href="/layanan" className="hover:text-green-100 transition-colors">Layanan</Link>
-            <Link href="/edukasi" className="hover:text-green-100 transition-colors">Edukasi</Link>
-            <Link href="/tentang" className="hover:text-green-100 transition-colors">Tentang Kami</Link>
+  return (
+    <header className="w-full bg-[#25B868] flex justify-center fixed top-0 z-50">
+      <div className="w-full max-w-[1920px] h-20 md:h-[88px] flex items-center justify-between px-6 md:px-12">
+        {/* KIRI */}
+        <div className="flex items-center gap-6 md:gap-10">
+          <Link href="/landing" aria-label="Ke beranda">
+            <Image src="/logo.png" alt="Logo" width={120} height={52} />
+          </Link>
+
+          {/* DESKTOP MENU */}
+          <nav className="hidden min-[1100px]:flex gap-8 text-white text-lg md:text-xl font-bold">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="relative hover:scale-105 transition duration-300 after:content-[''] after:block after:h-[2px] after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 after:origin-left"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        {/* KANAN: ini bgian login2an */}
-        <div className="flex gap-3">
-          <Link href="/register">
-            <button className="w-[100px] h-[40px] bg-[#E9F8F0] text-[#25B868] hover:bg-white text-[14px] font-bold px-5 py-2 rounded-[16px] transition-colors">
-              Daftar
-            </button>
+        {/* KANAN */}
+        <div className="hidden min-[1100px]:flex gap-4">
+          <Link
+            href="/register"
+            className="w-[120px] h-[45px] bg-[#E9F8F0] text-[#25B868] text-[18px] font-bold rounded-[12px] transition duration-300 hover:scale-105 hover:shadow-lg active:scale-95 inline-flex items-center justify-center"
+          >
+            Daftar
           </Link>
 
-          <Link href="/login">
-            <button className="w-[100px] h-[40px] flex items-center justify-center bg-[#FFC200] text-[#E9F8F0] hover:bg-[#ffb300] hover:border-[#ffcc00] text-[14px] font-bold px-5 py-2 rounded-[16px] border-[4px] border-[#FFDE00] transition-colors">
-              Masuk
-            </button>
+          <Link
+            href="/login"
+            className="w-[120px] h-[45px] bg-[#FFC200] text-white text-[18px] font-bold rounded-[12px] border-[3px] border-[#FFDE00] transition duration-300 hover:scale-105 hover:shadow-lg active:scale-95 inline-flex items-center justify-center"
+          >
+            Masuk
           </Link>
         </div>
 
+        {/* HAMBURGER */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="min-[1100px]:hidden text-white text-2xl transition duration-300 hover:scale-110"
+        >
+          {isOpen ? <FaTimes /> : <FaBars />}
+        </button>
+      </div>
+
+      {/* MOBILE MENU */}
+      <div
+        className={`min-[1100px]:hidden absolute top-20 md:top-[88px] w-full bg-[#25B868] flex flex-col items-center gap-6 py-6 transition-all duration-300 ease-out ${
+          isOpen
+            ? "opacity-100 translate-y-0 scale-100"
+            : "opacity-0 -translate-y-5 scale-95 pointer-events-none"
+        }`}
+      >
+        {navItems.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            onClick={() => setIsOpen(false)}
+            className="text-white text-lg font-bold hover:scale-105 transition"
+          >
+            {item.label}
+          </Link>
+        ))}
+
+        <Link
+          href="/register"
+          onClick={() => setIsOpen(false)}
+          className="w-[140px] h-[45px] bg-[#E9F8F0] text-[#25B868] font-bold rounded-[12px] hover:scale-105 transition active:scale-95 inline-flex items-center justify-center"
+        >
+          Daftar
+        </Link>
+
+        <Link
+          href="/login"
+          onClick={() => setIsOpen(false)}
+          className="w-[140px] h-[45px] bg-[#FFC200] text-white font-bold rounded-[12px] border-[3px] border-[#FFDE00] hover:scale-105 transition active:scale-95 inline-flex items-center justify-center"
+        >
+          Masuk
+        </Link>
       </div>
     </header>
   );

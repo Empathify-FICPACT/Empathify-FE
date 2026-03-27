@@ -1,53 +1,70 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FaYoutube, FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import {
+  FaYoutube,
+  FaFacebookF,
+  FaInstagram,
+  FaLinkedinIn,
+} from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+
+const navItems = [
+  { label: "Beranda", href: "/landing" },
+  { label: "Layanan", href: "/layanan" },
+  { label: "Tentang Kami", href: "/tentang" },
+];
 
 export default function Footer() {
   return (
     <footer className="w-full bg-[#1C8A4E] text-white flex justify-center">
-      
-      <div className="w-full max-w-[1920px] px-10 py-8">
-        
+      <div className="w-full max-w-[1920px] px-6 md:px-20 py-10 md:py-15">
         {/* TOP */}
-        <div className="flex items-center justify-between">
-          
-          {/* logo */}
-          <div className="flex items-center gap-2">
-            <Image src="/logo/Logo putih.svg" alt="logo" width={120} height={32} />
-          </div>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* LOGO */}
+          <Link href="/landing" aria-label="Ke beranda">
+            <Image src="/logo.png" alt="logo" width={140} height={60} />
+          </Link>
 
-          {/* menu */}
-          <nav className="flex gap-8 text-[16px] font-medium">
-            <Link href="/landing" className="hover:text-green-200 transition-colors">Beranda</Link>
-            <Link href="/layanan" className="hover:text-green-200 transition-colors">Layanan</Link>
-            <Link href="/edukasi" className="hover:text-green-200 transition-colors">Edukasi</Link>
-            <Link href="/tentang" className="hover:text-green-200 transition-colors">Tentang Kami</Link>
+          {/* MENU */}
+          <nav className="flex items-center flex-wrap justify-center gap-6 text-base md:text-xl font-medium">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="hover:scale-105 transition duration-300"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        {/* ini garis tegngah itu */}
-        <div className="w-full h-[1px] bg-white/50 my-6"></div>
+        {/* LINE */}
+        <div className="w-full h-[1px] bg-white/50 my-8 md:my-12"></div>
 
         {/* BOTTOM */}
-        <div className="flex items-center justify-between text-[14px]">
-          
-          {/* copyright */}
-          <p className="text-[10px]">
-              Copyright © 2026 Empathify Indonesia
+        <div className="flex flex-col md:flex-row items-center justify-between gap-5 text-center md:text-left">
+          {/* COPYRIGHT */}
+          <p className="text-[14px] md:text-[16px]">
+            Copyright © 2026 Empathify Indonesia
           </p>
 
-          {/* social mediaaa */}
-          <div className="flex gap-5 text-white text-12px">
-             <FaYoutube />
-             <FaFacebookF />
-             <FaXTwitter />
-              <FaInstagram />
-             <FaLinkedinIn />
+          {/* SOCIAL */}
+          <div className="flex gap-5 text-lg">
+            {[
+              FaYoutube,
+              FaFacebookF,
+              FaXTwitter,
+              FaInstagram,
+              FaLinkedinIn,
+            ].map((Icon, index) => (
+              <Icon
+                key={index}
+                className="cursor-pointer transition duration-300 hover:scale-125 hover:text-[#FFC200]"
+              />
+            ))}
           </div>
-
         </div>
-
       </div>
     </footer>
   );
