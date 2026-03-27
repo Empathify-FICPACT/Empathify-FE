@@ -66,8 +66,12 @@ export default function Login() {
   };
 
   const handleGoogleAuth = () => {
-    window.location.href =
-      "https://empathify-be-staging.fly.dev/api/v1/auth/google/";
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("oauth_intent", "login");
+    }
+    const callbackUrl = `${window.location.origin}/auth/callback`;
+    const authUrl = `https://empathify-be-staging.fly.dev/api/v1/auth/google/?redirect_uri=${encodeURIComponent(callbackUrl)}`;
+    window.location.href = authUrl;
   };
 
   return (
@@ -79,7 +83,7 @@ export default function Login() {
       <div className="absolute top-0 left-0 w-full flex justify-between items-center px-4 py-4 md:px-8 md:py-6 z-20">
         <div className="flex items-center gap-2 md:gap-4">
           {/* Close Icon */}
-          <Link href="/landing">
+          <Link href="/">
             <button
               aria-label="Tutup"
               className="p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"

@@ -8,20 +8,71 @@ function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const parsePayloadToken = (raw: string | null): string | null => {
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw) as {
+        meta?: { success?: boolean };
+        data?: { access_token?: string };
+      };
+
+      if (parsed?.meta?.success && parsed?.data?.access_token) {
+        return parsed.data.access_token;
+      }
+      return parsed?.data?.access_token ?? null;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Ambil token dari URL parameters (bisa diteruskan dari backend)
-    const token = searchParams.get("token") || searchParams.get("access_token");
+    const oauthIntent =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("oauth_intent")
+        : null;
+
+    const queryToken =
+      searchParams.get("token") || searchParams.get("access_token");
+
+    const hashParams =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.hash.replace(/^#/, ""))
+        : null;
+    const hashToken =
+      hashParams?.get("token") || hashParams?.get("access_token");
+
+    // Fallback jika backend mengirim payload JSON di query/hash.
+    const payloadToken =
+      parsePayloadToken(searchParams.get("data")) ||
+      parsePayloadToken(searchParams.get("response")) ||
+      parsePayloadToken(searchParams.get("result")) ||
+      parsePayloadToken(hashParams?.get("data") ?? null) ||
+      parsePayloadToken(hashParams?.get("response") ?? null) ||
+      parsePayloadToken(hashParams?.get("result") ?? null);
+
+    const token = queryToken || hashToken || payloadToken;
 
     if (token) {
-      // Simpan token di dalam cookie dengan durasi 7 hari
       Cookies.set("access_token", token, { expires: 7 });
-      
-      // Redirect ke halaman dashboard
-      router.push("/dashboard");
-    } else {
-      // Jika token tidak ada, redirect kembali ke halaman login dengan error
-      router.push("/login?error=auth_failed");
+
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("oauth_intent");
+      }
+
+      if (oauthIntent === "register") {
+        router.replace("/register/avatar");
+      } else {
+        router.replace("/dashboard/beranda");
+      }
+      return;
     }
+
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("oauth_intent");
+    }
+
+    router.replace("/login?error=auth_failed");
   }, [router, searchParams]);
 
   return (
@@ -36,7 +87,13 @@ function CallbackContent() {
 
 export default function AuthCallback() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          Loading...
+        </div>
+      }
+    >
       <CallbackContent />
     </Suspense>
   );

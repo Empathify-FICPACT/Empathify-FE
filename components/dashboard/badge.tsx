@@ -29,6 +29,7 @@ interface RightSidebarProps {
   missionSummary?: MissionSummary;
   latestBadge?: BadgeLatestItem | null;
   badgeSummary?: BadgeSummary;
+  userTotalXp?: number;
 }
 
 interface BadgesResponse {
@@ -50,6 +51,9 @@ interface DashboardMissionsResponse {
   };
   data: {
     missions: MissionSummary;
+    xp?: {
+      total: number;
+    };
   };
 }
 
@@ -61,17 +65,26 @@ const badgeImageByName: Record<string, string> = {
   Master: "/penghargaan/Master.svg",
 };
 
+const xpTargetByBadgeName: Record<string, number> = {
+  Penjelajah: 200,
+  Jagoan: 500,
+  Raja: 1000,
+  Master: 2000,
+};
+
 export default function RightSidebar({
   showMisi = true,
   missionSummary,
   latestBadge,
   badgeSummary,
+  userTotalXp,
 }: RightSidebarProps) {
   const [fetchedBadges, setFetchedBadges] = useState<
     BadgesResponse["data"] | null
   >(null);
   const [fetchedMissionSummary, setFetchedMissionSummary] =
     useState<MissionSummary | null>(null);
+  const [fetchedUserXp, setFetchedUserXp] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -125,9 +138,15 @@ export default function RightSidebar({
 
         if (!isMounted) return;
         setFetchedMissionSummary(json.data?.missions ?? null);
+        setFetchedUserXp(
+          Number.isFinite(json.data?.xp?.total)
+            ? (json.data?.xp?.total ?? 0)
+            : 0,
+        );
       } catch {
         if (!isMounted) return;
         setFetchedMissionSummary(null);
+        setFetchedUserXp(0);
       }
     };
 
@@ -158,6 +177,9 @@ export default function RightSidebar({
       : null);
 
   const unlockedCount = resolvedBadgeSummary?.unlocked ?? 0;
+  const currentUserXp = Number.isFinite(userTotalXp)
+    ? (userTotalXp ?? 0)
+    : fetchedUserXp;
 
   const resolvedFeaturedBadge = useMemo(() => {
     if (fetchedBadges?.badges?.length) {
@@ -198,6 +220,25 @@ export default function RightSidebar({
         ? `Lencana ${resolvedFeaturedBadge.name}`
         : "Lencana Level";
 
+  const badgeTarget = resolvedFeaturedBadge
+    ? resolvedFeaturedBadge.name === "Pemula"
+      ? 1
+      : (xpTargetByBadgeName[resolvedFeaturedBadge.name] ?? 1)
+    : 1;
+
+  const badgeCurrent = resolvedFeaturedBadge
+    ? resolvedFeaturedBadge.name === "Pemula"
+      ? resolvedFeaturedBadge.is_unlocked
+        ? 1
+        : 0
+      : resolvedFeaturedBadge.is_unlocked
+        ? badgeTarget
+        : Math.min(currentUserXp, badgeTarget)
+    : 0;
+
+  const badgeProgress =
+    badgeTarget > 0 ? Math.round((badgeCurrent / badgeTarget) * 100) : 0;
+
   return (
     <div className="w-full xl:w-112.5 shrink-0 order-1 xl:order-2 block">
       <div className="bg-white border border-gray-200 rounded-[20px] p-5 lg:p-6 shadow-sm">
@@ -220,10 +261,21 @@ export default function RightSidebar({
               : "Mulai latihan untuk mendapatkan badge pertamamu!"}
           </p>
         </div>
-        <p className="mt-3 text-xs lg:text-sm text-gray-500">
-          {resolvedBadgeSummary?.unlocked ?? 0} /{" "}
-          {resolvedBadgeSummary?.total ?? 0} badge terbuka
-        </p>
+        <div className="pl-14 lg:pl-16">
+          <p className="mt-1 text-xs lg:text-sm text-center text-gray-500">
+            {resolvedBadgeSummary?.unlocked ?? 0} /{" "}
+            {resolvedBadgeSummary?.total ?? 0} badge terbuka
+          </p>
+          <div className="mt-3 w-full bg-[#d1d5db] rounded-full h-5.5 lg:h-6 relative flex items-center justify-center overflow-hidden">
+            <div
+              className="absolute top-0 left-0 h-full bg-[#2cb46c]"
+              style={{ width: `${badgeProgress}%` }}
+            ></div>
+            <span className="relative z-10 text-[11px] lg:text-xs font-bold text-gray-900">
+              {badgeCurrent} / {badgeTarget}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Misi Harian */}
@@ -260,7 +312,7 @@ export default function RightSidebar({
                   className="absolute top-0 left-0 h-full bg-[#2cb46c]"
                   style={{ width: `${missionProgress}%` }}
                 ></div>
-                <span className="relative z-10 text-[11px] lg:text-xs font-bold text-gray-900">
+                <span className="relative z-10 text-[11px] lg:text-xs font-bold  text-gray-900">
                   {completedMissions} / {totalMissions}
                 </span>
               </div>

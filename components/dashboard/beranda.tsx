@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/utils/api";
 import {
+  buildTrainingResultHref,
   formatHistoryDate,
   getTrainingHistory,
   type TrainingHistoryItem,
@@ -71,6 +72,7 @@ interface FeatureItem {
   title: string;
   avgScore: number;
   totalSessions: number;
+  totalXp: number;
 }
 
 export default function Beranda() {
@@ -143,50 +145,70 @@ export default function Beranda() {
   const featureItems = useMemo<FeatureItem[]>(() => {
     if (!dashboard) return [];
 
+    const xpByTraining = riwayatLatihan.reduce<Record<string, number>>(
+      (acc, item) => {
+        acc[item.title] = (acc[item.title] ?? 0) + item.xp;
+        return acc;
+      },
+      {},
+    );
+
     return [
       {
         key: "story",
         title: "Cerita Interaktif",
         avgScore: dashboard.features.story.avg_score,
         totalSessions: dashboard.features.story.total_sessions,
+        totalXp: xpByTraining["Cerita Interaktif"] ?? 0,
       },
       {
         key: "emotion",
         title: "Memahami Emosi",
         avgScore: dashboard.features.emotion.avg_score,
         totalSessions: dashboard.features.emotion.total_sessions,
+        totalXp: xpByTraining["Memahami Emosi"] ?? 0,
       },
       {
         key: "expression",
         title: "Mengenal Ekspresi",
         avgScore: dashboard.features.expression.avg_score,
         totalSessions: dashboard.features.expression.total_sessions,
+        totalXp: xpByTraining["Mengenal Ekspresi"] ?? 0,
       },
       {
         key: "conversation",
         title: "Simulasi Percakapan",
         avgScore: dashboard.features.conversation.avg_score,
         totalSessions: dashboard.features.conversation.total_sessions,
+        totalXp: xpByTraining["Simulasi Percakapan"] ?? 0,
       },
     ];
-  }, [dashboard]);
+  }, [dashboard, riwayatLatihan]);
 
-  const chartLabels = ["Story", "Emosi", "Eksp", "Chat"];
+  const chartItems =
+    isLoading || featureItems.length === 0
+      ? [
+          { title: "Cerita Interaktif", totalXp: 0 },
+          { title: "Memahami Emosi", totalXp: 0 },
+          { title: "Mengenal Ekspresi", totalXp: 0 },
+          { title: "Simulasi Percakapan", totalXp: 0 },
+        ]
+      : featureItems.map((item) => ({
+          title: item.title,
+          totalXp: item.totalXp,
+        }));
 
-  const chartValues = featureItems.map((item) =>
-    Math.min(100, Math.max(0, Math.round(item.avgScore))),
+  const maxChartXp = chartItems.reduce(
+    (max, item) => Math.max(max, item.totalXp),
+    0,
   );
 
-  const latestBadge = dashboard?.badges?.latest?.[0] ?? null;
+  const chartValues = chartItems.map((item) => {
+    if (maxChartXp <= 0) return 0;
+    return Math.round((item.totalXp / maxChartXp) * 100);
+  });
 
-  const getRoutePath = (title: string | undefined) => {
-    if (!title) return "Interaktif";
-    if (title === "Cerita Interaktif") return "Interaktif";
-    if (title === "Memahami Emosi") return "Emosi";
-    if (title === "Mengenal Ekspresi") return "Ekspresi";
-    if (title === "Simulasi Percakapan") return "SimulasiPercakapan";
-    return "Interaktif";
-  };
+  const latestBadge = dashboard?.badges?.latest?.[0] ?? null;
 
   return (
     <div className="w-full max-w-435 mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
@@ -197,6 +219,7 @@ export default function Beranda() {
           missionSummary={dashboard?.missions}
           latestBadge={latestBadge}
           badgeSummary={dashboard?.badges}
+          userTotalXp={dashboard?.xp.total}
         />
 
         {/* Main Content */}
@@ -241,29 +264,31 @@ export default function Beranda() {
             {/* Chart Card */}
             <div className="bg-white border border-gray-200 rounded-3xl p-6 lg:p-8 flex-1 shadow-sm flex flex-col justify-end">
               <div className="flex items-end justify-between h-40 mb-4 gap-2 lg:gap-4 px-2">
-                {(isLoading ? [0, 0, 0, 0] : chartValues).map((h, i) => (
+                {chartValues.map((h, i) => (
                   <div
                     key={i}
-                    className="flex flex-col items-center flex-1 group"
+                    className="flex h-full flex-col items-center justify-end flex-1 group"
                   >
                     <div
                       className="w-full max-w-7 bg-[#2cb46c] rounded-full"
                       style={{
                         height: `${h}%`,
-                        minHeight: h > 0 ? "28px" : "0",
+                        minHeight: h > 0 ? "15px" : "0",
                       }}
                     ></div>
                   </div>
                 ))}
               </div>
               <div className="flex justify-between items-center px-1">
-                {chartLabels.map((d, i) => (
-                  <span
-                    key={i}
-                    className="text-[14px] font-bold text-gray-500 text-center flex-1"
-                  >
-                    {d}
-                  </span>
+                {chartItems.map((item, i) => (
+                  <div key={i} className="text-center flex-1 px-1">
+                    <span className="block text-[11px] md:text-xs lg:text-sm font-bold leading-tight text-gray-500">
+                      {item.title}
+                    </span>
+                    <span className="block text-[10px] md:text-[11px] lg:text-xs font-semibold text-[#2cb46c] mt-1">
+                      {item.totalXp} XP
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -285,9 +310,14 @@ export default function Beranda() {
                           height={24}
                         />
                       </div>
-                      <span className="text-sm md:text-sm lg:text-xl font-semibold text-gray-900">
-                        {item.title}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-sm md:text-sm lg:text-xl font-semibold text-gray-900 leading-snug">
+                          {item.title}
+                        </span>
+                        {/* <span className="text-xs md:text-xs lg:text-sm font-semibold text-[#2cb46c]">
+                          {item.totalXp} XP terkumpul
+                        </span> */}
+                      </div>
                     </div>
                     <span className="text-sm md:text-sm lg:text-lg font-medium text-gray-400">
                       {item.totalSessions} Sesi
@@ -362,7 +392,7 @@ export default function Beranda() {
                     </div>
                   </div>
                 </div>
-                <Link href={`/latihan/${getRoutePath(item.title)}?review=true`}>
+                <Link href={buildTrainingResultHref(item)}>
                   <button className="text-sm md:text-sm lg:text-xl px-8 py-3 w-full lg:w-auto bg-[#2cb46c] text-white font-bold rounded-xl hover:bg-[#259b5c] transition-colors whitespace-nowrap">
                     Lihat
                   </button>

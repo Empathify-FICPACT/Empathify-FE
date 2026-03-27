@@ -1,8 +1,32 @@
+"use client";
 import Image from "next/image";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
+import { useRouter } from "next/navigation";
+import {
+  hasValidLogoutGraceSession,
+  restoreSessionFromLogoutGrace,
+} from "@/utils/auth-session";
 
 export default function LayananEkspresi() {
+  const router = useRouter();
+
+  const handleStartTraining = () => {
+    if (hasValidLogoutGraceSession() && restoreSessionFromLogoutGrace()) {
+      router.push("/dashboard/beranda");
+      return;
+    }
+
+    router.push("/login");
+  };
+
   return (
-    <div className="bg-[rgba(245,245,245,1)] pt-[100px]">
+      <>
+         <Header />
+        <div className="bg-[rgba(245,245,245,1)] pt-20 md:pt-[88px]">
+         
+    
     
           {/* HERO */}
           <section className="bg-[#25B868] px-6 md:px-[30px] py-16 md:py-25 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
@@ -23,7 +47,9 @@ export default function LayananEkspresi() {
     
               {/* BUTTON */}
               <button
+                type="button"
                 className="mt-10 md:mt-20 w-[220px] md:w-[256px] h-[50px] md:h-[60px] flex items-center justify-center bg-[#FFC200] text-[#E9F8F0] text-[18px] md:text-[24px] font-bold rounded-[50px] border-[4px] md:border-[5px] border-[#FFDE00] shadow-[0px_0px_4px_rgba(0,0,0,0.5)] transition duration-300 hover:scale-105 active:scale-95 self-center md:self-start"
+                onClick={handleStartTraining}
               >
                 Mulai Latihan!
               </button>
@@ -116,5 +142,7 @@ export default function LayananEkspresi() {
       </section>
 
     </div>
+    <Footer />
+    </>
   );
 }

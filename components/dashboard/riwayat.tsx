@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  buildTrainingResultHref,
   formatHistoryDate,
   getTrainingHistory,
   type TrainingHistoryItem,
@@ -27,14 +28,6 @@ export default function Riwayat() {
       window.removeEventListener("training-history-updated", loadHistory);
     };
   }, []);
-
-  const getRoutePath = (title: string) => {
-    if (title === "Cerita Interaktif") return "Interaktif";
-    if (title === "Memahami Emosi") return "Emosi";
-    if (title === "Mengenal Ekspresi") return "Ekspresi";
-    if (title === "Simulasi Percakapan") return "SimulasiPercakapan";
-    return "Interaktif";
-  };
 
   return (
     <div className="w-full max-w-435 mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
@@ -97,7 +90,7 @@ export default function Riwayat() {
                     </div>
                   </div>
                 </div>
-                <Link href={`/latihan/${getRoutePath(item.title)}?review=true`}>
+                <Link href={buildTrainingResultHref(item)}>
                   <button className="text-sm md:text-sm lg:text-xl px-8 py-3 w-full lg:w-auto bg-[#2cb46c] text-white font-bold rounded-xl hover:bg-[#259b5c] transition-colors whitespace-nowrap">
                     Lihat
                   </button>

@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Camera, RefreshCcw, Zap } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "./header";
 import { apiFetch } from "@/utils/api";
-import { appendTrainingHistory } from "@/utils/training-history";
+import {
+  appendTrainingHistory,
+  getTrainingHistoryItemById,
+} from "@/utils/training-history";
 import { showErrorMessage } from "@/utils/error-message";
 
 interface ExpressionData {
@@ -60,6 +63,91 @@ export default function Ekspresi() {
     score: number;
     message: string;
   } | null>(null);
+  const [isHistoryResultMode, setIsHistoryResultMode] = useState(false);
+  const [historyXp, setHistoryXp] = useState(0);
+  const [historyCorrect, setHistoryCorrect] = useState(0);
+  const [historyTotal, setHistoryTotal] = useState(0);
+
+  // Track attempts history
+  interface AttemptRecord {
+    emotion: string;
+    similarity_score: number;
+    is_correct: boolean;
+    ai_feedback: string;
+  }
+  const [attemptsHistory, setAttemptsHistory] = useState<AttemptRecord[]>([]);
+  const [totalCorrect, setTotalCorrect] = useState(0);
+
+  // Review mode state
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [reviewCurrentIndex, setReviewCurrentIndex] = useState(0);
+  const [hasHistoryScore, setHasHistoryScore] = useState(false);
+  const [historyReviewData, setHistoryReviewData] = useState<{
+    attempts: AttemptRecord[];
+  } | null>(null);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("result") !== "true") return;
+
+    const xp = Number(searchParams.get("xp") ?? 0);
+    setHistoryXp(Number.isFinite(xp) ? Number(xp) : 0);
+
+    // Load score dari query params
+    const correctParam = searchParams.get("correct");
+    const totalParam = searchParams.get("total");
+    const correct = correctParam !== null ? Number(correctParam) : NaN;
+    const total = totalParam !== null ? Number(totalParam) : NaN;
+
+    let hasScore = false;
+    let resolvedCorrect = 0;
+    let resolvedTotal = 0;
+
+    if (Number.isFinite(correct) && Number.isFinite(total)) {
+      hasScore = true;
+      resolvedCorrect = correct;
+      resolvedTotal = total;
+    } else {
+      // Fallback: load dari history menggunakan historyId
+      const historyId = searchParams.get("historyId");
+      if (historyId) {
+        const item = getTrainingHistoryItemById(historyId);
+        if (
+          item &&
+          typeof item.correct === "number" &&
+          typeof item.total === "number"
+        ) {
+          hasScore = true;
+          resolvedCorrect = item.correct;
+          resolvedTotal = item.total;
+        }
+      }
+    }
+
+    if (hasScore) {
+      setHistoryCorrect(resolvedCorrect);
+      setHistoryTotal(resolvedTotal);
+      setHasHistoryScore(true);
+    }
+
+    // Load history review data
+    const historyId = searchParams.get("historyId");
+    if (historyId) {
+      const item = getTrainingHistoryItemById(historyId);
+      if (
+        item?.reviewData?.attempts &&
+        Array.isArray(item.reviewData.attempts)
+      ) {
+        setHistoryReviewData({
+          attempts: item.reviewData.attempts as AttemptRecord[],
+        });
+      }
+    }
+
+    setIsHistoryResultMode(true);
+    setStep("result");
+  }, [searchParams]);
 
   // Custom cleanup effect to make sure camera turns off when unmounting
   useEffect(() => {
@@ -185,6 +273,57 @@ export default function Ekspresi() {
     retakePhoto();
   };
 
+  const startReviewMode = () => {
+    setIsReviewMode(true);
+    setReviewCurrentIndex(0);
+    setFeedback(null);
+  };
+
+  const startHistoryReviewMode = () => {
+    if (
+      !historyReviewData?.attempts ||
+      historyReviewData.attempts.length === 0
+    ) {
+      showErrorMessage("Data jawaban untuk riwayat ini belum tersedia.");
+      return;
+    }
+
+    setIsReviewMode(true);
+    setReviewCurrentIndex(0);
+    setFeedback(null);
+  };
+
+  const handleReviewNext = () => {
+    if (isReviewMode) {
+      if (isHistoryResultMode && historyReviewData) {
+        if (reviewCurrentIndex + 1 < historyReviewData.attempts.length) {
+          setReviewCurrentIndex(reviewCurrentIndex + 1);
+        } else {
+          setIsReviewMode(false);
+          setStep("result");
+        }
+      } else {
+        if (reviewCurrentIndex + 1 < attemptsHistory.length) {
+          setReviewCurrentIndex(reviewCurrentIndex + 1);
+        } else {
+          setIsReviewMode(false);
+          setStep("result");
+        }
+      }
+    }
+  };
+
+  const handleReviewBack = () => {
+    if (isReviewMode) {
+      if (reviewCurrentIndex > 0) {
+        setReviewCurrentIndex(reviewCurrentIndex - 1);
+      } else {
+        setIsReviewMode(false);
+        setStep("result");
+      }
+    }
+  };
+
   const submitPhoto = async () => {
     if (!capturedBlob || !sessionId || expressions.length === 0) return;
 
@@ -211,9 +350,23 @@ export default function Ekspresi() {
       const data = await res.json();
 
       if (data.meta?.success && data.data) {
+        const similarityScore = data.data.similarity_score;
+        const isCorrect = similarityScore >= 0.6;
+
+        // Simpan attempt ke history
+        const newAttempt: AttemptRecord = {
+          emotion: currentExpression.emotion,
+          similarity_score: similarityScore,
+          is_correct: isCorrect,
+          ai_feedback:
+            data.data.ai_feedback || "Ekspresi dianalisa dengan sukses.",
+        };
+        setAttemptsHistory((prev) => [...prev, newAttempt]);
+        setTotalCorrect((prev) => (isCorrect ? prev + 1 : prev));
+
         setFeedback({
-          isCorrect: data.data.is_correct,
-          score: Math.round(data.data.similarity_score * 100),
+          isCorrect: isCorrect,
+          score: Math.round(similarityScore * 100),
           message: data.data.ai_feedback || "Ekspresi dianalisa dengan sukses.",
         });
       } else {
@@ -269,6 +422,11 @@ export default function Ekspresi() {
           appendTrainingHistory({
             title: "Mengenal Ekspresi",
             xp: xpEarned,
+            correct: totalCorrect,
+            total: expressions.length,
+            reviewData: {
+              attempts: attemptsHistory,
+            },
           });
         }
 
@@ -281,6 +439,114 @@ export default function Ekspresi() {
       }
     }
   };
+
+  // Review mode display
+  if (isReviewMode && step === "result") {
+    const reviewAttempts = isHistoryResultMode
+      ? historyReviewData?.attempts || []
+      : attemptsHistory;
+    const currentAttempt = reviewAttempts[reviewCurrentIndex];
+
+    if (!currentAttempt) {
+      return (
+        <div className="flex flex-col min-h-screen bg-[#f9fafb]">
+          <Header buttonText="Kembali" onButtonClick={handleReviewBack} />
+          <main className="flex-1 flex items-center justify-center px-4">
+            <p className="text-gray-500 font-medium">
+              Tidak ada data untuk ditampilkan.
+            </p>
+          </main>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col min-h-screen bg-[#f9fafb]">
+        <Header buttonText="Kembali" onButtonClick={handleReviewBack} />
+        <main
+          className="relative w-full flex-1 flex flex-col px-4 pt-4 pb-12 md:pt-8 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/background/BgLatihan.svg')" }}
+        >
+          <div className="z-10 flex flex-col items-center max-w-5xl mx-auto w-full mt-2 md:mt-4 lg:mt-6">
+            {/* Progress */}
+            <div className="w-full max-w-2xl mx-auto mb-8">
+              <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                <span className="font-semibold">
+                  Review {reviewCurrentIndex + 1}/{reviewAttempts.length}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#9c27b0] rounded-full transition-all duration-300"
+                  style={{
+                    width: `${((reviewCurrentIndex + 1) / reviewAttempts.length) * 100}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Attempt Review Card */}
+            <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-8 md:p-10 mb-8 w-full max-w-2xl mx-auto">
+              <div className="flex items-center gap-3 mb-6 flex-wrap">
+                <div className="bg-[#f3e5f5] p-3 rounded-full border border-purple-200 shrink-0">
+                  <div className="w-10 h-10 bg-[#9c27b0] text-white rounded-full flex items-center justify-center font-black text-sm">
+                    {reviewCurrentIndex + 1}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-[#2cb46c] font-bold text-lg tracking-wide">
+                    {translateEmotion(currentAttempt.emotion)}
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    Akurasi: {Math.round(currentAttempt.similarity_score * 100)}
+                    %
+                  </p>
+                </div>
+                <div className="ml-auto shrink-0">
+                  <div
+                    className={`px-4 py-2 rounded-full font-bold text-sm text-white ${
+                      currentAttempt.is_correct
+                        ? "bg-[#2cb46c]"
+                        : "bg-[#EF4444]"
+                    } shadow-sm`}
+                  >
+                    {currentAttempt.is_correct ? "✓ Benar" : "✗ Kurang"}
+                  </div>
+                </div>{" "}
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <p className="text-gray-700 font-medium leading-relaxed">
+                  {currentAttempt.ai_feedback}
+                </p>
+              </div>{" "}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="w-full flex justify-between items-center px-4 max-w-2xl mx-auto mt-6 gap-4">
+              <button
+                onClick={handleReviewBack}
+                className="text-[#2cb46c] bg-[#eafff2] hover:bg-[#d5fce4] font-extrabold py-3 px-8 rounded-2xl transition-colors text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={reviewCurrentIndex === 0 && isHistoryResultMode}
+              >
+                Sebelumnya
+              </button>
+              <span className="text-gray-600 font-semibold text-sm">
+                {reviewCurrentIndex + 1} dari {reviewAttempts.length}
+              </span>
+              <button
+                onClick={handleReviewNext}
+                className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3 px-8 rounded-2xl transition-colors text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {reviewCurrentIndex === reviewAttempts.length - 1
+                  ? "Selesai"
+                  : "Selanjutnya"}
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (step === "intro") {
     return (
@@ -339,7 +605,11 @@ export default function Ekspresi() {
       <div className="flex flex-col min-h-screen bg-[#f9fafb]">
         <Header
           buttonText="Kembali"
-          onButtonClick={() => router.push("/dashboard/beranda")}
+          onButtonClick={() =>
+            router.push(
+              isHistoryResultMode ? "/dashboard/riwayat" : "/dashboard/beranda",
+            )
+          }
         />
 
         <main
@@ -364,14 +634,67 @@ export default function Ekspresi() {
               <p className="text-base sm:text-lg md:text-xl text-gray-500 font-medium mb-8 md:mb-12 text-center max-w-xl">
                 Pingo bangga sama kamu, kemampuan ekspresimu semakin mantap!
               </p>
+
+              {isHistoryResultMode && (
+                <div className="flex flex-col sm:flex-row gap-5 md:gap-6 w-full justify-center px-4">
+                  <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 max-w-[280px]">
+                    <div className="bg-[#fff8e1] p-2 md:p-3 rounded-full flex shrink-0 border border-yellow-100">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ffc107] shadow-sm flex items-center justify-center text-white font-black text-sm md:text-base">
+                        P
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">
+                        XP Diperoleh
+                      </p>
+                      <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">
+                        +{historyXp} XP
+                      </p>
+                    </div>
+                  </div>
+
+                  {historyTotal > 0 && (
+                    <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 max-w-[280px]">
+                      <div className="shrink-0">
+                        <Zap
+                          className="w-12 h-12 md:w-14 md:h-14 text-[#ffc107] fill-[#ffc107]"
+                          strokeWidth={1}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">
+                          Skor Benar
+                        </p>
+                        <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">
+                          {historyCorrect}/{historyTotal}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            <div className="w-full flex justify-center items-center px-4 md:px-10 mt-2 md:mt-4">
+            <div className="w-full flex justify-between items-center px-4 md:px-10 mt-2 md:mt-4">
               <button
-                onClick={() => router.push("/dashboard/beranda")}
-                className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-12 sm:px-16 md:px-20 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
+                onClick={
+                  isHistoryResultMode ? startHistoryReviewMode : startReviewMode
+                }
+                className="text-[#2cb46c] bg-[#eafff2] hover:bg-[#d5fce4] font-extrabold py-3.5 sm:py-4 px-6 sm:px-10 md:px-14 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto"
               >
-                Kembali ke Beranda
+                Lihat Jawaban
+              </button>
+              <button
+                onClick={() =>
+                  router.push(
+                    isHistoryResultMode
+                      ? "/dashboard/riwayat"
+                      : "/dashboard/beranda",
+                  )
+                }
+                className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-8 sm:px-12 md:px-16 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
+              >
+                {isHistoryResultMode ? "Riwayat Latihan" : "Kembali ke Beranda"}
               </button>
             </div>
           </div>

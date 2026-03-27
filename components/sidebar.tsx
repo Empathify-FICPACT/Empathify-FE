@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { saveLogoutGraceSession } from "@/utils/auth-session";
+import { clearLogoutGraceSession } from "@/utils/auth-session";
 
 export default function Sidebar() {
   const [isMinimized, setIsMinimized] = useState(false);
@@ -16,14 +16,10 @@ export default function Sidebar() {
   const router = useRouter();
 
   const handleConfirmLogout = () => {
-    const accessToken = Cookies.get("access_token");
-    if (accessToken) {
-      saveLogoutGraceSession(accessToken);
-    }
-
     setShowLogoutModal(false);
     Cookies.remove("access_token");
-    router.push("/landing");
+    clearLogoutGraceSession();
+    router.push("/");
   };
 
   // Auto-minimize on smaller screens and track if mobile
@@ -281,10 +277,10 @@ export default function Sidebar() {
               />
             </div>
 
-            <h3 className="text-lg sm:text-[20px] font-bold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-[20px] font-bold text-gray-900 mb-4 lg:mb-6">
               Yakin ingin keluar sekarang?
             </h3>
-         
+
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
               <button
                 type="button"

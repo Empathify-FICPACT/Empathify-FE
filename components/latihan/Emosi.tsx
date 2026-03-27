@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { ArrowLeft, Zap } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "./header";
 import { apiFetch } from "@/utils/api";
-import { appendTrainingHistory } from "@/utils/training-history";
+import {
+  appendTrainingHistory,
+  getTrainingHistoryItemById,
+} from "@/utils/training-history";
 import { showErrorMessage } from "@/utils/error-message";
 
 interface EmotionQuestion {
@@ -53,8 +56,73 @@ export default function Emosi() {
   const [answersHistory, setAnswersHistory] = useState<
     Record<string, AnswerResult>
   >({});
+  const [isHistoryResultMode, setIsHistoryResultMode] = useState(false);
+  const [hasHistoryScore, setHasHistoryScore] = useState(false);
+  const [historyReviewData, setHistoryReviewData] = useState<{
+    questions: EmotionQuestion[];
+    answers: Record<string, AnswerResult>;
+  } | null>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const isResultMode = searchParams.get("result") === "true";
+    if (!isResultMode) {
+      setIsHistoryResultMode(false);
+      setHasHistoryScore(false);
+      setHistoryReviewData(null);
+      return;
+    }
+
+    const xp = Number(searchParams.get("xp") ?? 0);
+    const correctParam = searchParams.get("correct");
+    const totalParam = searchParams.get("total");
+    const correct = correctParam !== null ? Number(correctParam) : NaN;
+    const total = totalParam !== null ? Number(totalParam) : NaN;
+    let hasScore =
+      correctParam !== null &&
+      totalParam !== null &&
+      Number.isFinite(correct) &&
+      Number.isFinite(total);
+
+    let resolvedCorrect = hasScore ? Number(correct) : 0;
+    let resolvedTotal = hasScore && Number(total) > 0 ? Number(total) : 5;
+
+    const historyId = searchParams.get("historyId");
+    if (historyId) {
+      const item = getTrainingHistoryItemById(historyId);
+
+      if (!hasScore && item) {
+        const itemHasScore =
+          Number.isFinite(item.correct) && Number.isFinite(item.total);
+        if (itemHasScore) {
+          hasScore = true;
+          resolvedCorrect = Number(item.correct);
+          resolvedTotal = Number(item.total);
+        }
+      }
+
+      const questions = item?.reviewData?.questions;
+      const answers = item?.reviewData?.answers;
+      if (Array.isArray(questions) && answers && typeof answers === "object") {
+        setHistoryReviewData({
+          questions: questions as EmotionQuestion[],
+          answers: answers as Record<string, AnswerResult>,
+        });
+      }
+    }
+
+    setSessionResult({
+      correct_count: resolvedCorrect,
+      total: resolvedTotal,
+      xp_earned: Number.isFinite(xp) ? Number(xp) : 0,
+      total_xp: 0,
+    });
+    setHasHistoryScore(hasScore);
+    setIsHistoryResultMode(true);
+    setStep("result");
+  }, [searchParams]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -171,6 +239,12 @@ export default function Emosi() {
           appendTrainingHistory({
             title: "Memahami Emosi",
             xp: data.data.xp_earned ?? 0,
+            correct: data.data.correct_count ?? 0,
+            total: data.data.total ?? 5,
+            reviewData: {
+              questions,
+              answers: answersHistory,
+            },
           });
           setSessionResult(data.data);
           setStep("result");
@@ -191,6 +265,35 @@ export default function Emosi() {
     setStep("question");
     setCurrentIndex(0);
     prepareReviewState(0);
+  };
+
+  const startHistoryReviewMode = () => {
+    if (!historyReviewData) {
+      showErrorMessage("Data jawaban untuk riwayat ini belum tersedia.");
+      return;
+    }
+
+    setQuestions(historyReviewData.questions);
+    setAnswersHistory(historyReviewData.answers);
+    setIsHistoryResultMode(false);
+    setIsReviewMode(true);
+    setStep("question");
+    setCurrentIndex(0);
+
+    const firstQuestionId = historyReviewData.questions[0]?.id;
+    const firstAnswer = firstQuestionId
+      ? historyReviewData.answers[firstQuestionId]
+      : null;
+
+    if (firstAnswer) {
+      setSelectedOption(firstAnswer.chosen_answer);
+      setCurrentAnswerResult(firstAnswer);
+      setIsSubmitted(true);
+    } else {
+      setSelectedOption(null);
+      setCurrentAnswerResult(null);
+      setIsSubmitted(false);
+    }
   };
 
   const prepareReviewState = (index: number) => {
@@ -496,7 +599,11 @@ export default function Emosi() {
     <div className="flex flex-col min-h-screen bg-[#f9fafb]">
       <Header
         buttonText="Kembali"
-        onButtonClick={() => router.push("/dashboard/beranda")}
+        onButtonClick={() =>
+          router.push(
+            isHistoryResultMode ? "/dashboard/riwayat" : "/dashboard/beranda",
+          )
+        }
       />
 
       <main
@@ -553,8 +660,9 @@ export default function Emosi() {
                     Skor Benar
                   </p>
                   <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">
-                    {sessionResult?.correct_count || 0}/
-                    {sessionResult?.total || 5}
+                    {isHistoryResultMode && !hasHistoryScore
+                      ? "-"
+                      : `${sessionResult?.correct_count || 0}/${sessionResult?.total || 5}`}
                   </p>
                 </div>
               </div>
@@ -563,16 +671,24 @@ export default function Emosi() {
 
           <div className="w-full flex justify-between items-center px-4 md:px-10 mt-2 md:mt-4">
             <button
-              onClick={startReviewMode}
+              onClick={
+                isHistoryResultMode ? startHistoryReviewMode : startReviewMode
+              }
               className="text-[#2cb46c] bg-[#eafff2] hover:bg-[#d5fce4] font-extrabold py-3.5 sm:py-4 px-6 sm:px-10 md:px-14 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto"
             >
               Lihat Jawaban
             </button>
             <button
-              onClick={() => router.push("/dashboard/beranda")}
+              onClick={() =>
+                router.push(
+                  isHistoryResultMode
+                    ? "/dashboard/riwayat"
+                    : "/dashboard/beranda",
+                )
+              }
               className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-8 sm:px-12 md:px-16 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
             >
-              Kembali ke Beranda
+              {isHistoryResultMode ? "Riwayat Latihan" : "Kembali ke Beranda"}
             </button>
           </div>
         </div>

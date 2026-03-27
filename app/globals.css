@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+.font-feather {
+  font-family: var(--font-feather), Arial, Helvetica, sans-serif;
+  font-weight: 400;
+}
+
 :root {
   --background: #f9fafb;
   --foreground: #171717;
@@ -16,6 +21,7 @@
   :root {
     --background: #f9fafb;
     --foreground: #171717;
+    
   }
 }
 

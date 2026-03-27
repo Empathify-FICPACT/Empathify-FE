@@ -9,28 +9,28 @@ export default function Fitur() {
       description: "Latih komunikasi dalam situasi nyata dengan feedback langsung.",
       bgColor: "bg-[#4cbf7d]",
       image: "/pinguin/PinguinHijau.svg",
-      link: "#",
+      link: "/layanan/simulasi_percakapan",
     },
     {
       title: "Mengenal Ekspresi",
       description: "Pelajari dan ekspresikan berbagai ekspresi wajah.",
       bgColor: "bg-[#00cadd]",
       image: "/pinguin/PinguinBiru.svg",
-      link: "#",
+      link: "/layanan/mengenal_ekspresi",
     },
     {
       title: "Memahami Emosi",
       description: "Kenali emosi dari berbagai situasi sehari-hari.",
       bgColor: "bg-[#b48ec9]",
       image: "/pinguin/PinguinUngu.svg",
-      link: "#",
+      link: "/layanan/memahami_emosi",
     },
     {
       title: "Cerita Interaktif",
       description: "Belajar lewat cerita dengan pilihan yang membentuk perilaku sosial.",
       bgColor: "bg-[#ffbc11]",
       image: "/pinguin/PinguinKuning.svg",
-      link: "#",
+      link: "/layanan/cerita_interaktif",
     },
     
   ];

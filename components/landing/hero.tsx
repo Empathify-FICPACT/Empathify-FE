@@ -24,7 +24,7 @@ export default function Hero() {
       <div className="container mx-auto px-6 lg:px-12 max-w-8xl relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-12 lg:gap-8">
         {/* Left Content */}
         <div className="flex-1 w-full max-w-3xl text-center md:text-left flex flex-col items-center md:items-start">
-          <h1 className="text-3xl sm:text-5xl md:text-5xl lg:text-[64px] font-extrabold leading-[1.2] lg:leading-[1.1] mb-5 tracking-tight px-2 md:px-0">
+          <h1 className=" text-3xl sm:text-5xl md:text-5xl lg:text-6xl font-extrabold leading-[1.2] text-[#ffffff] lg:leading-[1.1] mb-5 tracking-tight px-2 md:px-0">
             belajar, bermain, dan <br className="hidden md:block" /> berkembang
             setiap hari
           </h1>

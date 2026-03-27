@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { Mic, Square } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "./header";
 import { apiFetch } from "@/utils/api";
 import { appendTrainingHistory } from "@/utils/training-history";
@@ -29,12 +29,23 @@ export default function SimulasiPercakapan() {
   );
   const [isInitializing, setIsInitializing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isHistoryResultMode, setIsHistoryResultMode] = useState(false);
+  const [historyXp, setHistoryXp] = useState(0);
 
   // Refs untuk audio recording
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("result") !== "true") return;
+
+    const xp = Number(searchParams.get("xp") ?? 0);
+    setHistoryXp(Number.isFinite(xp) ? Number(xp) : 0);
+    setIsHistoryResultMode(true);
+  }, [searchParams]);
 
   // Ambil topik saat pertama load
   useEffect(() => {
@@ -210,6 +221,68 @@ export default function SimulasiPercakapan() {
       router.push("/dashboard/beranda");
     }
   };
+
+  if (isHistoryResultMode) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#f9fafb]">
+        <Header
+          buttonText="Kembali"
+          onButtonClick={() => router.push("/dashboard/riwayat")}
+        />
+
+        <main
+          className="relative w-full flex-1 flex flex-col px-4 pt-4 pb-12 md:pt-8 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/background/BgLatihan.svg')" }}
+        >
+          <div className="z-10 flex flex-col items-center max-w-5xl mx-auto w-full mt-2 md:mt-4 lg:mt-6">
+            <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-8 md:mb-12">
+              <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 mb-4 md:mb-6">
+                <Image
+                  src="/pinguin/PinguinAmaze.svg"
+                  alt="Pingo Bangga"
+                  fill
+                  className="object-contain object-bottom"
+                  priority
+                />
+              </div>
+
+              <h1 className="text-[24px] sm:text-[28px] md:text-[34px] font-extrabold text-gray-900 mb-2 md:mb-3 text-center">
+                Latihan Kamu Selesai!
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-gray-500 font-medium mb-8 md:mb-12 text-center max-w-xl">
+                Percakapanmu seru banget. Kemampuan komunikasimu makin bagus!
+              </p>
+
+              <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] w-full max-w-70">
+                <div className="bg-[#fff8e1] p-2 md:p-3 rounded-full flex shrink-0 border border-yellow-100">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ffc107] shadow-sm flex items-center justify-center text-white font-black text-sm md:text-base">
+                    P
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">
+                    XP Diperoleh
+                  </p>
+                  <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">
+                    +{historyXp} XP
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full flex justify-center items-center px-4 md:px-10 mt-2 md:mt-4">
+              <button
+                onClick={() => router.push("/dashboard/riwayat")}
+                className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-12 sm:px-16 md:px-20 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
+              >
+                Kembali ke Riwayat
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f9fafb]">

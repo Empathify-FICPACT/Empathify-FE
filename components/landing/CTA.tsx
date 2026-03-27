@@ -16,7 +16,7 @@ export default function CTA() {
       return;
     }
 
-    router.push("/login");
+    router.push("/register");
   };
 
   return (

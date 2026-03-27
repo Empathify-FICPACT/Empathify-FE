@@ -158,6 +158,7 @@ export default function Penghargaan() {
               ? { unlocked: badgesData.unlocked, total: badgesData.total }
               : undefined
           }
+          userTotalXp={userTotalXp}
         />
 
         {/* Main Content (Penghargaan) */}
