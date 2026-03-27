@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
+import ErrorMassage from "@/components/ErrorMassage";
 
 
 const nunito = Nunito({
@@ -38,6 +39,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={nunito.className}>
         {children}
+        <ErrorMassage />
       </body>
     </html>
   );

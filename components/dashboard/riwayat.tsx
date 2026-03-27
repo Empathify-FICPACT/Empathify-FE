@@ -1,19 +1,32 @@
+"use client";
+
 import Badge from "./badge";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  formatHistoryDate,
+  getTrainingHistory,
+  type TrainingHistoryItem,
+} from "@/utils/training-history";
 
 export default function Riwayat() {
-  const riwayatLatihan = [
-    { title: "Cerita Interaktif", date: "30/01/2026 · 08:33", xp: 20 },
-    { title: "Memahami Emosi", date: "29/01/2026 · 11:59", xp: 15 },
-    { title: "Mengenal Ekspresi", date: "28/01/2026 · 12:14", xp: 10 },
-    { title: "Mengenal Ekspresi", date: "28/01/2026 · 12:14", xp: 10 },
-    { title: "Simulasi Percakapan", date: "27/01/2026 · 09:00", xp: 25 },
-    { title: "Cerita Interaktif", date: "26/01/2026 · 14:20", xp: 20 },
-    { title: "Memahami Emosi", date: "25/01/2026 · 10:10", xp: 15 },
-    { title: "Simulasi Percakapan", date: "22/01/2026 · 13:45", xp: 25 },
-    { title: "Mengenal Ekspresi", date: "21/01/2026 · 16:30", xp: 10 },
-  ];
+  const [riwayatLatihan, setRiwayatLatihan] = useState<TrainingHistoryItem[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const loadHistory = () => {
+      setRiwayatLatihan(getTrainingHistory());
+    };
+
+    loadHistory();
+    window.addEventListener("training-history-updated", loadHistory);
+
+    return () => {
+      window.removeEventListener("training-history-updated", loadHistory);
+    };
+  }, []);
 
   const getRoutePath = (title: string) => {
     if (title === "Cerita Interaktif") return "Interaktif";
@@ -24,7 +37,7 @@ export default function Riwayat() {
   };
 
   return (
-    <div className="w-full max-w-[1740px] mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
+    <div className="w-full max-w-435 mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
       <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Right Sidebar Component */}
         <Badge showMisi={true} />
@@ -38,10 +51,10 @@ export default function Riwayat() {
           </div>
 
           {/* Training History List */}
-          <div className="bg-white border border-gray-200 rounded-[24px] flex flex-col shadow-sm mb-10">
+          <div className="bg-white border border-gray-200 rounded-3xl flex flex-col shadow-sm mb-10">
             {riwayatLatihan.map((item, idx) => (
               <div
-                key={idx}
+                key={item.id}
                 className={`flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 gap-6 ${
                   idx !== riwayatLatihan.length - 1
                     ? "border-b border-gray-100"
@@ -49,7 +62,7 @@ export default function Riwayat() {
                 }`}
               >
                 <div className="flex items-center gap-6 flex-1 w-full">
-                  <div className="w-[52px] h-[52px] rounded-xl bg-[#e6fbf2] flex items-center justify-center flex-shrink-0">
+                  <div className="w-13 h-13 rounded-xl bg-[#e6fbf2] flex items-center justify-center shrink-0">
                     <Image
                       src="/icon/IconList.svg"
                       alt="Icon"
@@ -71,7 +84,7 @@ export default function Riwayat() {
                         Tanggal
                       </p>
                       <p className="text-sm md:text-sm lg:text-xl font-medium text-gray-900 leading-snug">
-                        {item.date}
+                        {formatHistoryDate(item.completedAt)}
                       </p>
                     </div>
                     <div>
@@ -91,8 +104,12 @@ export default function Riwayat() {
                 </Link>
               </div>
             ))}
+            {riwayatLatihan.length === 0 && (
+              <div className="p-6 text-sm text-gray-500">
+                Belum ada riwayat latihan.
+              </div>
+            )}
           </div>
-
         </div>
       </div>
     </div>

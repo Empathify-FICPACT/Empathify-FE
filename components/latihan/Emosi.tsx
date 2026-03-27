@@ -6,6 +6,8 @@ import { ArrowLeft, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Header from "./header";
 import { apiFetch } from "@/utils/api";
+import { appendTrainingHistory } from "@/utils/training-history";
+import { showErrorMessage } from "@/utils/error-message";
 
 interface EmotionQuestion {
   id: string;
@@ -25,31 +27,39 @@ interface AnswerResult {
 }
 
 export default function Emosi() {
-  const [step, setStep] = useState<'intro' | 'question' | 'result'>('intro');
+  const [step, setStep] = useState<"intro" | "question" | "result">("intro");
   const [showExitPopup, setShowExitPopup] = useState(false);
-  
+
   // API State
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<EmotionQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionResult, setSessionResult] = useState<{ correct_count: number; total: number; xp_earned: number; total_xp: number } | null>(null);
+  const [sessionResult, setSessionResult] = useState<{
+    correct_count: number;
+    total: number;
+    xp_earned: number;
+    total_xp: number;
+  } | null>(null);
 
   // Interaction State
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [currentAnswerResult, setCurrentAnswerResult] = useState<AnswerResult | null>(null);
-  
+  const [currentAnswerResult, setCurrentAnswerResult] =
+    useState<AnswerResult | null>(null);
+
   // Review Mode Caching
   const [isReviewMode, setIsReviewMode] = useState(false);
-  const [answersHistory, setAnswersHistory] = useState<Record<string, AnswerResult>>({});
+  const [answersHistory, setAnswersHistory] = useState<
+    Record<string, AnswerResult>
+  >({});
 
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('review') === 'true') {
+      if (params.get("review") === "true") {
         // Fallback for direct URL (optional)
         // setStep('result');
       }
@@ -66,20 +76,22 @@ export default function Emosi() {
       const data = await res.json();
       if (data.meta?.success && data.data) {
         setSessionId(data.data.id);
-        const sortedQs = data.data.questions.sort((a: any, b: any) => a.order - b.order);
+        const sortedQs = data.data.questions.sort(
+          (a: any, b: any) => a.order - b.order,
+        );
         setQuestions(sortedQs);
         setCurrentIndex(0);
         setAnswersHistory({});
         setIsSubmitted(false);
         setSelectedOption(null);
         setCurrentAnswerResult(null);
-        setStep('question');
+        setStep("question");
       } else {
-        alert("Gagal memulai sesi latihan emosi.");
+        showErrorMessage("Gagal memulai sesi latihan emosi.");
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan sistem saat menghubungi server.");
+      showErrorMessage("Terjadi kesalahan sistem saat menghubungi server.");
     } finally {
       setIsLoading(false);
     }
@@ -87,18 +99,21 @@ export default function Emosi() {
 
   const handleSubmit = async () => {
     if (!selectedOption || !sessionId || questions.length === 0) return;
-    
+
     setIsLoading(true);
     const currentQ = questions[currentIndex];
 
     try {
-      const res = await apiFetch(`/api/v1/emotion/sessions/${sessionId}/answers`, {
-        method: "POST",
-        body: JSON.stringify({
-          question_id: currentQ.id,
-          chosen_answer: selectedOption
-        }),
-      });
+      const res = await apiFetch(
+        `/api/v1/emotion/sessions/${sessionId}/answers`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            question_id: currentQ.id,
+            chosen_answer: selectedOption,
+          }),
+        },
+      );
       const data = await res.json();
       if (data.meta?.success && data.data) {
         setIsSubmitted(true);
@@ -106,18 +121,18 @@ export default function Emosi() {
           question_id: data.data.question_id,
           chosen_answer: data.data.chosen_answer,
           correct_answer: data.data.correct_answer,
-          is_correct: data.data.is_correct
+          is_correct: data.data.is_correct,
         };
         setCurrentAnswerResult(result);
-        
+
         // Cache result
-        setAnswersHistory(prev => ({ ...prev, [currentQ.id]: result }));
+        setAnswersHistory((prev) => ({ ...prev, [currentQ.id]: result }));
       } else {
-        alert("Gagal mengirim jawaban.");
+        showErrorMessage("Gagal mengirim jawaban.");
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan koneksi.");
+      showErrorMessage("Terjadi kesalahan koneksi.");
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +146,7 @@ export default function Emosi() {
       } else {
         // Selesai review
         setIsReviewMode(false);
-        setStep('result');
+        setStep("result");
       }
       return;
     }
@@ -145,11 +160,18 @@ export default function Emosi() {
       // Complete Session
       setIsLoading(true);
       try {
-        const res = await apiFetch(`/api/v1/emotion/sessions/${sessionId}/complete`, {
-          method: "PATCH"
-        });
+        const res = await apiFetch(
+          `/api/v1/emotion/sessions/${sessionId}/complete`,
+          {
+            method: "PATCH",
+          },
+        );
         const data = await res.json();
         if (data.meta?.success && data.data) {
+          appendTrainingHistory({
+            title: "Memahami Emosi",
+            xp: data.data.xp_earned ?? 0,
+          });
           setSessionResult(data.data);
           setStep("result");
         } else {
@@ -166,7 +188,7 @@ export default function Emosi() {
 
   const startReviewMode = () => {
     setIsReviewMode(true);
-    setStep('question');
+    setStep("question");
     setCurrentIndex(0);
     prepareReviewState(0);
   };
@@ -190,23 +212,30 @@ export default function Emosi() {
     // Basic dynamic matching for existing icons (Senang, Sedih, Marah, Takut, Bosan, dll)
     // Asumsi nama icon case-sensitive di folder /icon
     // Kita buat capitalisasi huruf pertama
-    const capitalized = emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
+    const capitalized =
+      emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
     return `/icon/${capitalized}.svg`;
   };
 
   // --- RENDERS ---
 
-  if (step === 'intro') {
+  if (step === "intro") {
     return (
       <div className="flex flex-col min-h-screen bg-[#f9fafb]">
         <Header buttonText="Kembali" />
-        <main 
+        <main
           className="relative w-full flex-1 flex flex-col items-center justify-center px-4 py-8 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('/background/BgLatihan.svg')" }}
         >
           <div className="z-10 flex flex-col items-center max-w-xl mx-auto -mt-10 md:-mt-20 w-full">
             <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 mb-6">
-              <Image src="/pinguin/CaptainPingo.svg" alt="Captain Pingo" fill className="object-contain object-bottom" priority />
+              <Image
+                src="/pinguin/CaptainPingo.svg"
+                alt="Captain Pingo"
+                fill
+                className="object-contain object-bottom"
+                priority
+              />
             </div>
 
             <div className="text-center px-4 mb-8">
@@ -229,7 +258,7 @@ export default function Emosi() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={handleStartSession}
               disabled={isLoading}
               className={`bg-[#ffc107] hover:bg-[#ffb300] active:scale-95 text-white font-bold py-3 md:py-4 px-10 md:px-14 rounded-full border-[3px] border-yellow-100 shadow-sm transition-all text-sm md:text-lg ${isLoading ? "opacity-70 cursor-wait" : ""}`}
@@ -242,40 +271,59 @@ export default function Emosi() {
     );
   }
 
-  if (step === 'question' && questions.length > 0) {
+  if (step === "question" && questions.length > 0) {
     const currentQ = questions[currentIndex];
-    
+
     // Map options dynamically
     const optionsMap = [
       { id: "a", text: currentQ.option_a },
       { id: "b", text: currentQ.option_b },
       { id: "c", text: currentQ.option_c },
-      { id: "d", text: currentQ.option_d }
+      { id: "d", text: currentQ.option_d },
     ];
 
     const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
 
     return (
       <div className="flex flex-col min-h-screen bg-[#f9fafb]">
-        <Header buttonText={isReviewMode ? "Selesai Review" : "Akhiri"} onButtonClick={() => { if (isReviewMode) { setIsReviewMode(false); setStep('result'); } else { setShowExitPopup(true); } }} />
+        <Header
+          buttonText={isReviewMode ? "Selesai Review" : "Akhiri"}
+          onButtonClick={() => {
+            if (isReviewMode) {
+              setIsReviewMode(false);
+              setStep("result");
+            } else {
+              setShowExitPopup(true);
+            }
+          }}
+        />
 
-        <main 
+        <main
           className="relative w-full flex-1 flex flex-col items-center px-4 pt-10 pb-8 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('/background/BgLatihan.svg')" }}
         >
           <div className="w-full max-w-5xl mx-auto z-10 flex flex-col mt-4 md:mt-6">
-            
             {/* Progress Bar & Back Arrow */}
             <div className="flex items-center gap-4 mb-8 md:mb-12 w-full">
-              <button 
-                onClick={() => { if (isReviewMode) { setIsReviewMode(false); setStep('result'); } else { setShowExitPopup(true); } }} 
+              <button
+                onClick={() => {
+                  if (isReviewMode) {
+                    setIsReviewMode(false);
+                    setStep("result");
+                  } else {
+                    setShowExitPopup(true);
+                  }
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Kembali"
               >
                 <ArrowLeft className="w-6 h-6 md:w-8 md:h-8" />
               </button>
               <div className="flex-1 h-3 md:h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-[#2cb46c] rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
+                <div
+                  className="h-full bg-[#2cb46c] rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
               </div>
             </div>
 
@@ -285,7 +333,9 @@ export default function Emosi() {
                 {currentQ.situation}
               </h3>
               <p className="text-gray-400 font-medium text-sm md:text-base">
-                {isReviewMode ? `Review Pertanyaan ${currentIndex + 1}` : "Apa yang orang tersebut rasakan?"}
+                {isReviewMode
+                  ? `Review Pertanyaan ${currentIndex + 1}`
+                  : "Apa yang orang tersebut rasakan?"}
               </p>
             </div>
 
@@ -293,40 +343,51 @@ export default function Emosi() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 w-full max-w-5xl mx-auto px-2">
               {optionsMap.map((opt) => {
                 const isSelected = selectedOption === opt.id;
-                const isCorrect = isSubmitted && currentAnswerResult?.correct_answer === opt.id;
-                const isIncorrect = isSubmitted && isSelected && currentAnswerResult?.correct_answer !== opt.id;
-                
-                let buttonClass = "bg-white border-[3px] border-transparent text-gray-900 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:border-[#2cb46c] hover:bg-[#eafff2]";
+                const isCorrect =
+                  isSubmitted && currentAnswerResult?.correct_answer === opt.id;
+                const isIncorrect =
+                  isSubmitted &&
+                  isSelected &&
+                  currentAnswerResult?.correct_answer !== opt.id;
+
+                let buttonClass =
+                  "bg-white border-[3px] border-transparent text-gray-900 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:border-[#2cb46c] hover:bg-[#eafff2]";
 
                 if (isSubmitted) {
                   if (isCorrect) {
-                    buttonClass = "bg-[#2cb46c] border-[3px] border-[#2cb46c] text-white shadow-md transform scale-105 z-10";
+                    buttonClass =
+                      "bg-[#2cb46c] border-[3px] border-[#2cb46c] text-white shadow-md transform scale-105 z-10";
                   } else if (isIncorrect) {
-                    buttonClass = "bg-[#EF4444] border-[3px] border-[#EF4444] text-white shadow-md";
+                    buttonClass =
+                      "bg-[#EF4444] border-[3px] border-[#EF4444] text-white shadow-md";
                   } else {
-                    buttonClass = "bg-white border-[3px] border-transparent text-gray-400 opacity-50 shadow-sm";
+                    buttonClass =
+                      "bg-white border-[3px] border-transparent text-gray-400 opacity-50 shadow-sm";
                   }
                 } else if (isSelected) {
-                  buttonClass = "bg-[#eafff2] border-[3px] border-[#2cb46c] text-[#2cb46c] shadow-md";
+                  buttonClass =
+                    "bg-[#eafff2] border-[3px] border-[#2cb46c] text-[#2cb46c] shadow-md";
                 }
 
                 return (
                   <button
                     key={opt.id}
-                    onClick={() => !isSubmitted && !isReviewMode && setSelectedOption(opt.id)}
+                    onClick={() =>
+                      !isSubmitted && !isReviewMode && setSelectedOption(opt.id)
+                    }
                     className={`flex flex-col items-center justify-center p-6 sm:p-8 md:p-10 rounded-[20px] md:rounded-[32px] transition-all duration-200 aspect-[4/5] overflow-hidden ${buttonClass} ${!isSubmitted && "cursor-pointer hover:-translate-y-1"}`}
                     disabled={isSubmitted}
                   >
                     <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mb-4 transition-transform duration-200 transform hover:scale-105">
-                      <Image 
-                        src={getIconPath(opt.text)} 
-                        alt={opt.text} 
-                        fill 
-                        className="object-contain drop-shadow-sm" 
-                        priority 
+                      <Image
+                        src={getIconPath(opt.text)}
+                        alt={opt.text}
+                        fill
+                        className="object-contain drop-shadow-sm"
+                        priority
                         onError={(e) => {
                           // Fallback jika icon svgnys tidak ada
-                          e.currentTarget.src = "/icon/Senang.svg"; 
+                          e.currentTarget.src = "/icon/Senang.svg";
                         }}
                       />
                     </div>
@@ -339,14 +400,14 @@ export default function Emosi() {
             </div>
 
             {/* Footer Actions */}
-            <div className="flex items-center justify-end mt-auto pt-10 md:pt-16 w-full mb-10 max-w-5xl mx-auto px-4">              
+            <div className="flex items-center justify-end mt-auto pt-10 md:pt-16 w-full mb-10 max-w-5xl mx-auto px-4">
               {!isSubmitted && !isReviewMode ? (
                 <button
                   onClick={handleSubmit}
                   disabled={!selectedOption || isLoading}
                   className={`px-10 md:px-14 py-3 md:py-4 rounded-2xl font-bold transition-all text-sm md:text-base ${
                     selectedOption && !isLoading
-                      ? "bg-[#2cb46c] text-white hover:bg-[#259b5d] shadow-sm -translate-y-0.5 active:translate-y-0" 
+                      ? "bg-[#2cb46c] text-white hover:bg-[#259b5d] shadow-sm -translate-y-0.5 active:translate-y-0"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >
@@ -358,11 +419,14 @@ export default function Emosi() {
                   disabled={isLoading}
                   className="px-10 md:px-14 py-3 md:py-4 rounded-2xl font-bold transition-all text-sm md:text-base bg-[#2cb46c] text-white hover:bg-[#259b5d] shadow-sm -translate-y-0.5 active:translate-y-0 animate-in fade-in zoom-in"
                 >
-                  {isLoading ? "Memuat..." : (isReviewMode && currentIndex === questions.length - 1 ? "Selesai Review" : "Selanjutnya")}
+                  {isLoading
+                    ? "Memuat..."
+                    : isReviewMode && currentIndex === questions.length - 1
+                      ? "Selesai Review"
+                      : "Selanjutnya"}
                 </button>
               )}
             </div>
-
           </div>
         </main>
 
@@ -371,17 +435,25 @@ export default function Emosi() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
             <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md flex flex-col items-center shadow-xl animate-in fade-in zoom-in duration-200">
               <div className="relative w-32 h-32 sm:w-40 sm:h-40 mb-2">
-                <Image src="/pinguin/PinguinSedih.svg" alt="Sedih Pingo" fill className="object-contain" />
+                <Image
+                  src="/pinguin/PinguinSedih.svg"
+                  alt="Sedih Pingo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Yakin ingin keluar?</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                Yakin ingin keluar?
+              </h3>
               <p className="text-sm sm:text-base text-gray-500 text-center mb-8 px-2 leading-relaxed">
-                Progress kamu belum tersimpan. Latihanmu sekarang akan terhapus jika kamu keluar.
+                Progress kamu belum tersimpan. Latihanmu sekarang akan terhapus
+                jika kamu keluar.
               </p>
               <div className="flex w-full gap-3 sm:gap-4">
-                <button 
+                <button
                   onClick={() => {
                     setShowExitPopup(false);
-                    setStep('intro');
+                    setStep("intro");
                     setSelectedOption(null);
                     setIsSubmitted(false);
                   }}
@@ -389,7 +461,7 @@ export default function Emosi() {
                 >
                   Keluar
                 </button>
-                <button 
+                <button
                   onClick={() => setShowExitPopup(false)}
                   className="flex-1 bg-[#2cb46c] hover:bg-[#259b5d] text-white font-extrabold py-3 sm:py-3.5 rounded-2xl shadow-sm transition-colors text-sm sm:text-base"
                 >
@@ -406,65 +478,87 @@ export default function Emosi() {
   // step === 'result'
   return (
     <div className="flex flex-col min-h-screen bg-[#f9fafb]">
-      <Header buttonText="Kembali" onButtonClick={() => router.push('/dashboard/beranda')} />
+      <Header
+        buttonText="Kembali"
+        onButtonClick={() => router.push("/dashboard/beranda")}
+      />
 
-      <main 
+      <main
         className="relative w-full flex-1 flex flex-col px-4 pt-4 pb-12 md:pt-8 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/background/BgLatihan.svg')" }}
       >
         <div className="z-10 flex flex-col items-center max-w-6xl mx-auto w-full mt-2 md:mt-4 lg:mt-6">
-          
           <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-8 md:mb-12">
             <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 mb-4 md:mb-6">
-              <Image src="/pinguin/PinguinAmaze.svg" alt="Pingo Bangga" fill className="object-contain object-bottom" priority />
+              <Image
+                src="/pinguin/PinguinAmaze.svg"
+                alt="Pingo Bangga"
+                fill
+                className="object-contain object-bottom"
+                priority
+              />
             </div>
 
             <h1 className="text-[24px] sm:text-[28px] md:text-[34px] font-extrabold text-gray-900 mb-2 md:mb-3 text-center">
               Latihan Kamu Selesai!
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-500 font-medium mb-8 md:mb-12 text-center max-w-xl">
-              Pingo bangga sama kamu, kemampuan membaca emosimu jadi semakin hebat!
+              Pingo bangga sama kamu, kemampuan membaca emosimu jadi semakin
+              hebat!
             </p>
 
             {/* Stats Cards */}
             <div className="flex flex-col sm:flex-row gap-5 md:gap-6 w-full justify-center px-4">
               <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 max-w-[280px]">
                 <div className="bg-[#fff8e1] p-2 md:p-3 rounded-full flex shrink-0 border border-yellow-100">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ffc107] shadow-sm flex items-center justify-center text-white font-black text-sm md:text-base">P</div>
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ffc107] shadow-sm flex items-center justify-center text-white font-black text-sm md:text-base">
+                    P
+                  </div>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">XP Diperoleh</p>
-                  <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">+{sessionResult?.xp_earned || 0} XP</p>
+                  <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">
+                    XP Diperoleh
+                  </p>
+                  <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">
+                    +{sessionResult?.xp_earned || 0} XP
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-[20px] p-5 md:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 max-w-[280px]">
                 <div className="shrink-0">
-                  <Zap className="w-12 h-12 md:w-14 md:h-14 text-[#ffc107] fill-[#ffc107]" strokeWidth={1} />
+                  <Zap
+                    className="w-12 h-12 md:w-14 md:h-14 text-[#ffc107] fill-[#ffc107]"
+                    strokeWidth={1}
+                  />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">Skor Benar</p>
-                  <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">{sessionResult?.correct_count || 0}/{sessionResult?.total || 5}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm font-semibold mb-1">
+                    Skor Benar
+                  </p>
+                  <p className="text-gray-900 font-black text-xl sm:text-2xl leading-none">
+                    {sessionResult?.correct_count || 0}/
+                    {sessionResult?.total || 5}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="w-full flex justify-between items-center px-4 md:px-10 mt-2 md:mt-4">
-            <button 
+            <button
               onClick={startReviewMode}
               className="text-[#2cb46c] bg-[#eafff2] hover:bg-[#d5fce4] font-extrabold py-3.5 sm:py-4 px-6 sm:px-10 md:px-14 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto"
             >
               Lihat Jawaban
             </button>
-            <button 
-              onClick={() => router.push('/dashboard/beranda')}
+            <button
+              onClick={() => router.push("/dashboard/beranda")}
               className="bg-[#2cb46c] text-white hover:bg-[#259b5d] font-extrabold py-3.5 sm:py-4 px-8 sm:px-12 md:px-16 rounded-2xl transition-colors text-sm sm:text-base md:text-lg shadow-sm w-auto -translate-y-0.5 active:translate-y-0"
             >
               Kembali ke Beranda
             </button>
           </div>
-          
         </div>
       </main>
     </div>
