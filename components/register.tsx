@@ -15,13 +15,11 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [accepted, setAccepted] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     if (!name || !email || !password || !passwordConfirm) {
       setError("Semua field wajib diisi.");
@@ -41,11 +39,14 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://empathify-be-staging.fly.dev/api/v1/auth/register/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, password }),
-      });
+      const res = await fetch(
+        "https://empathify-be-staging.fly.dev/api/v1/auth/register/",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name, password }),
+        },
+      );
       const data = await res.json();
 
       if (!res.ok || !data.meta?.success) {
@@ -54,17 +55,20 @@ export default function Register() {
 
       const token = data.data.access_token;
       Cookies.set("access_token", token, { expires: 7 }); // expires in 7 days
-      
-      setSuccess("Registrasi berhasil!");
-    } catch (err: any) {
-      setError(err.message || "Terjadi kesalahan sistem.");
+
+      router.push("/register/avatar");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Terjadi kesalahan sistem.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleAuth = () => {
-    window.location.href = "https://empathify-be-staging.fly.dev/api/v1/auth/google/";
+    window.location.href =
+      "https://empathify-be-staging.fly.dev/api/v1/auth/google/";
   };
 
   return (
@@ -77,29 +81,29 @@ export default function Register() {
         <div className="flex items-center gap-2 md:gap-4">
           {/* Close Icon */}
           <Link href="/landing">
-          <button
-            aria-label="Tutup"
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-              stroke="currentColor"
-              className="w-5 h-5 md:w-6 md:h-6"
+            <button
+              aria-label="Tutup"
+              className="p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                stroke="currentColor"
+                className="w-5 h-5 md:w-6 md:h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </Link>
 
           {/* Logo */}
-          <div className="relative h-6 md:h-9 w-[120px] md:w-[150px]">
+          <div className="relative h-6 md:h-9 w-30 md:w-37.5">
             <Image
               src="/logo/Logo putih.svg"
               alt="Empathify Logo"
@@ -112,14 +116,14 @@ export default function Register() {
 
         {/* Login Button */}
         <Link href="/login">
-        <button className="bg-[#E9F8F0] text-[#2ECA7B] px-5 py-2 md:px-8 md:py-2.5 rounded-2xl shadow-xl font-bold hover:bg-green-50 transition-colors text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-white">
-          Masuk
-        </button>
+          <button className="bg-[#E9F8F0] text-[#2ECA7B] px-5 py-2 md:px-8 md:py-2.5 rounded-2xl shadow-xl font-bold hover:bg-green-50 transition-colors text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-white">
+            Masuk
+          </button>
         </Link>
       </div>
 
       {/* Main Register Card */}
-      <div className="relative z-10 w-[92%] max-w-[340px] sm:max-w-[450px] md:max-w-[470px] bg-white rounded-2xl p-6 sm:p-10 shadow-xl mx-auto mt-12 sm:mt-16 md:mt-0">
+      <div className="relative z-10 w-[92%] max-w-85 sm:max-w-112.5 md:max-w-117.5 bg-white rounded-2xl p-6 sm:p-10 shadow-xl mx-auto mt-12 sm:mt-16 md:mt-0">
         <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-6 sm:mb-8 tracking-tight">
           Daftar Akun
         </h2>
@@ -130,16 +134,7 @@ export default function Register() {
           </div>
         )}
 
-        {success && (
-          <div className="mb-4 p-3 bg-green-50 text-green-600 rounded-xl text-sm border border-green-200">
-            {success}
-          </div>
-        )}
-
-        <form
-          className="space-y-3 sm:space-y-4"
-          onSubmit={handleRegister}
-        >
+        <form className="space-y-3 sm:space-y-4" onSubmit={handleRegister}>
           {/* Name Input */}
           <div>
             <input
@@ -147,7 +142,7 @@ export default function Register() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Masukkan Nama "
-              className="w-full px-4 py-2.5 sm:py-3 rounded-xl border text-black border-gray-200 outline-none focus:border-[#2ECA7B] focus:ring-1 focus:ring-[#2ECA7B] text-gray-700 placeholder:text-gray-500 text-xs sm:text-sm transition-all"
+              className="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 outline-none focus:border-[#2ECA7B] focus:ring-1 focus:ring-[#2ECA7B] text-gray-700 placeholder:text-gray-500 text-xs sm:text-sm transition-all"
             />
           </div>
 
@@ -158,7 +153,7 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Masukkan Email"
-              className="w-full px-4 py-2.5 sm:py-3 rounded-xl border text-black border-gray-200 outline-none focus:border-[#2ECA7B] focus:ring-1 focus:ring-[#2ECA7B] text-gray-700 placeholder:text-gray-500 text-xs sm:text-sm transition-all"
+              className="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 outline-none focus:border-[#2ECA7B] focus:ring-1 focus:ring-[#2ECA7B] text-gray-700 placeholder:text-gray-500 text-xs sm:text-sm transition-all"
             />
           </div>
 
@@ -300,7 +295,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-[#2ECA7B] hover:bg-[#25a866] text-white font-bold py-2.5 sm:py-3.5 px-4 rounded-xl transition-colors shadow-sm text-sm sm:text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full bg-[#2ECA7B] hover:bg-[#25a866] text-white font-bold py-2.5 sm:py-3.5 px-4 rounded-xl transition-colors shadow-sm text-sm sm:text-base mt-2 ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {loading ? "Mendaftar..." : "Daftar"}
           </button>
@@ -308,11 +303,11 @@ export default function Register() {
 
         {/* Divider */}
         <div className="relative flex items-center my-6">
-          <div className="flex-grow border-t border-gray-100"></div>
-          <span className="flex-shrink-0 mx-4 text-xs font-semibold text-gray-400 uppercase tracking-widest">
+          <div className="grow border-t border-gray-100"></div>
+          <span className="shrink-0 mx-4 text-xs font-semibold text-gray-400 uppercase tracking-widest">
             ATAU
           </span>
-          <div className="flex-grow border-t border-gray-100"></div>
+          <div className="grow border-t border-gray-100"></div>
         </div>
 
         {/* Google Login */}

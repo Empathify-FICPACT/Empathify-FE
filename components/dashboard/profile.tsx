@@ -1,38 +1,211 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { apiFetch } from "@/utils/api";
+
+interface UserProfileResponse {
+  meta: {
+    success: boolean;
+    message: string;
+  };
+  data: {
+    id: string;
+    name: string;
+    gender: "male" | "female";
+    avatar_id: number;
+    total_xp: number;
+    current_streak: number;
+    longest_streak: number;
+  };
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  gender: "male" | "female";
+  avatar_id: number;
+  total_xp: number;
+  current_streak: number;
+  longest_streak: number;
+}
+
+const AVATARS = [
+  { id: 1, src: "/avatar/avatar1.svg", bg: "bg-[#cbf3f0]" },
+  { id: 2, src: "/avatar/avatar2.svg", bg: "bg-[#ffe066]" },
+  { id: 3, src: "/avatar/avatar3.svg", bg: "bg-[#aadbed]" },
+  { id: 4, src: "/avatar/avatar4.svg", bg: "bg-[#7ae5b4]" },
+];
 
 export default function Profile() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const [isEditing, setIsEditing] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState("/avatar/avatar1.svg");
-  const [selectedGender, setSelectedGender] = useState("Laki-laki");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const avatars = [
-    { src: "/avatar/avatar1.svg", bg: "bg-[#cbf3f0]" },
-    { src: "/avatar/avatar2.svg", bg: "bg-[#ffe066]" },
-    { src: "/avatar/avatar3.svg", bg: "bg-[#aadbed]" },
-    { src: "/avatar/avatar4.svg", bg: "bg-[#7ae5b4]" },
-  ];
+  const [formName, setFormName] = useState("");
+  const [selectedAvatarId, setSelectedAvatarId] = useState(1);
+  const [selectedGender, setSelectedGender] = useState<"male" | "female">(
+    "male",
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProfile = async () => {
+      setIsLoadingProfile(true);
+      setErrorMessage(null);
+
+      try {
+        const response = await apiFetch("/api/v1/user/profile", {
+          method: "GET",
+        });
+
+        const json = (await response.json()) as UserProfileResponse;
+
+        if (!response.ok || !json.meta?.success) {
+          throw new Error(json.meta?.message || "Gagal mengambil profil");
+        }
+
+        if (!isMounted) return;
+
+        setProfile(json.data);
+        setFormName(json.data.name);
+        setSelectedGender(json.data.gender);
+        setSelectedAvatarId(json.data.avatar_id);
+      } catch (error) {
+        if (!isMounted) return;
+        setProfile(null);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat memuat profil",
+        );
+      } finally {
+        if (isMounted) setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const selectedAvatar = useMemo(
+    () =>
+      AVATARS.find((avatar) => avatar.id === selectedAvatarId) ?? AVATARS[0],
+    [selectedAvatarId],
+  );
+
+  const handleOpenEdit = () => {
+    if (!profile) return;
+    setFormName(profile.name);
+    setSelectedGender(profile.gender);
+    setSelectedAvatarId(profile.avatar_id);
+    setIsEditing(true);
+  };
+
+  const handleConfirmSave = async () => {
+    if (!profile || isSaving) return;
+
+    const trimmedName = formName.trim();
+    if (!trimmedName) {
+      setErrorMessage("Nama tidak boleh kosong.");
+      setShowSaveModal(false);
+      return;
+    }
+
+    const payload: Partial<{
+      name: string;
+      gender: "male" | "female";
+      avatar_id: number;
+    }> = {};
+
+    if (trimmedName !== profile.name) payload.name = trimmedName;
+    if (selectedGender !== profile.gender) payload.gender = selectedGender;
+    if (selectedAvatarId !== profile.avatar_id)
+      payload.avatar_id = selectedAvatarId;
+
+    if (Object.keys(payload).length === 0) {
+      setShowSaveModal(false);
+      setIsEditing(false);
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await apiFetch("/api/v1/user/profile", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+
+      const json = (await response.json()) as UserProfileResponse;
+
+      if (!response.ok || !json.meta?.success) {
+        throw new Error(json.meta?.message || "Gagal memperbarui profil");
+      }
+
+      setProfile(json.data);
+      setFormName(json.data.name);
+      setSelectedGender(json.data.gender);
+      setSelectedAvatarId(json.data.avatar_id);
+      window.dispatchEvent(new Event("profile-updated"));
+      setShowSaveModal(false);
+      setIsEditing(false);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menyimpan profil",
+      );
+      setShowSaveModal(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoadingProfile) {
+    return (
+      <div className="w-375 items-start max-w-435 mx-12 px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+          Memuat profil...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-[1500px] items-start max-w-[1740px] mx-12 px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
+    <div className="w-375 items-start max-w-435 mx-12 px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
       <div className="flex justify-between items-center mb-6 lg:mb-8 mt-2">
         <h1 className="text-2xl md:text-[28px] font-bold text-gray-900">
           {isEditing ? "Profile Anda" : "Profil Anda"}
         </h1>
       </div>
 
-      {!isEditing ? (
+      {errorMessage && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMessage}
+        </div>
+      )}
+
+      {!isEditing && profile ? (
         <>
           {/* View Mode */}
           <div className="bg-white border border-gray-200 rounded-[20px] p-6 lg:p-8 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 shadow-sm">
             <div className="flex items-center gap-6">
-              <div className="w-[100px] h-[100px] rounded-[16px] overflow-hidden bg-[#cbf3f0] flex-shrink-0">
+              <div
+                className={`w-25 h-25 rounded-2xl overflow-hidden ${selectedAvatar.bg} shrink-0`}
+              >
                 <Image
-                  src={selectedAvatar}
+                  src={selectedAvatar.src}
                   alt="Avatar"
                   width={100}
                   height={100}
@@ -41,18 +214,18 @@ export default function Profile() {
               </div>
               <div className="flex flex-col justify-center">
                 <h3 className="text-[#2cb46c] text-xl lg:text-2xl font-bold leading-none mb-2">
-                  Febrian Faiq
+                  {profile.name}
                 </h3>
                 <p className="text-sm lg:text-xl font-semibold text-gray-900 leading-none mb-3">
-                  febrianfaiq@gmail.com
+                  {profile.gender === "male" ? "Laki-laki" : "Perempuan"}
                 </p>
                 <p className="text-base font-medium text-gray-400 mt-3 leading-none">
-                  Bergabung Maret 2026
+                  ID Pengguna: {profile.id}
                 </p>
               </div>
             </div>
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={handleOpenEdit}
               className="mt-6 md:mt-0 px-8 py-2.5 bg-[#2cb46c] text-white text-lg font-bold rounded-xl hover:bg-[#259b5c] transition-colors"
             >
               Ubah
@@ -64,7 +237,7 @@ export default function Profile() {
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <div className="bg-white border border-gray-200 rounded-[20px] p-6 flex flex-1 items-center gap-4 shadow-sm">
-              <div className="w-[70px] h-[70px] flex-shrink-0">
+              <div className="w-17.5 h-17.5 shrink-0">
                 <Image
                   src="/icon/PenghargaanSimbol.svg"
                   alt="Coin"
@@ -72,18 +245,18 @@ export default function Profile() {
                   height={70}
                 />
               </div>
-              <div  className="ml-2">
+              <div className="ml-2">
                 <p className="text-lg lg:text-xl font-medium text-gray-400 mb-0.5">
                   Total Pingo Coin
                 </p>
                 <p className="text-xl lg:text-2xl font-extrabold text-gray-900 leading-snug">
-                  30 Coin
+                  {profile.total_xp} XP
                 </p>
               </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-[20px] p-6 flex flex-1 items-center gap-4 shadow-sm">
-              <div className="w-[70px] h-[70px] flex-shrink-0">
+              <div className="w-17.5 h-17.5 shrink-0">
                 <Image
                   src="/logo/BadgeLevel.svg"
                   alt="Lencana"
@@ -93,16 +266,16 @@ export default function Profile() {
               </div>
               <div className="ml-2">
                 <p className="text-lg lg:text-xl font-medium text-gray-400 mb-0.5">
-                  Lencana
+                  Streak Terpanjang
                 </p>
                 <p className="text-xl lg:text-2xl font-extrabold text-gray-900 leading-snug">
-                  Pemula
+                  {profile.longest_streak} Hari
                 </p>
               </div>
             </div>
           </div>
         </>
-      ) : (
+      ) : profile ? (
         <>
           {/* Edit Mode */}
           <div className="bg-white border border-gray-200 rounded-[20px] p-6 lg:p-8 shadow-sm">
@@ -110,14 +283,14 @@ export default function Profile() {
               Foto Profile
             </h3>
             <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
-              {avatars.map((av, idx) => (
+              {AVATARS.map((av, idx) => (
                 <div
                   key={idx}
-                  onClick={() => setSelectedAvatar(av.src)}
-                  className={`w-[100px] h-[100px] rounded-[16px] overflow-hidden flex-shrink-0 cursor-pointer ${
+                  onClick={() => setSelectedAvatarId(av.id)}
+                  className={`w-25 h-25 rounded-2xl overflow-hidden shrink-0 cursor-pointer ${
                     av.bg
                   } border-[3px] ${
-                    selectedAvatar === av.src
+                    selectedAvatarId === av.id
                       ? "border-[#2cb46c]"
                       : "border-transparent"
                   }`}
@@ -145,8 +318,9 @@ export default function Profile() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Febrian Faiq"
-                  className="w-full h-[48px] px-4 rounded-xl border border-gray-200 text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-gray-200 text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium"
                 />
               </div>
 
@@ -157,9 +331,9 @@ export default function Profile() {
                 </label>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
-                    onClick={() => setSelectedGender("Laki-laki")}
-                    className={`flex-1 h-[48px] rounded-xl border flex items-center justify-center sm:justify-start px-4 gap-3 text-gray-900 font-medium text-xl transition-colors ${
-                      selectedGender === "Laki-laki"
+                    onClick={() => setSelectedGender("male")}
+                    className={`flex-1 h-12 rounded-xl border flex items-center justify-center sm:justify-start px-4 gap-3 text-gray-900 font-medium text-xl transition-colors ${
+                      selectedGender === "male"
                         ? "border-[#2cb46c] bg-[#e6fbf2]"
                         : "border-gray-200 bg-white"
                     }`}
@@ -173,9 +347,9 @@ export default function Profile() {
                     Laki-laki
                   </button>
                   <button
-                    onClick={() => setSelectedGender("Perempuan")}
-                    className={`flex-1 h-[48px] rounded-xl border flex items-center justify-center sm:justify-start px-4 gap-3 text-gray-900 font-medium text-xl transition-colors ${
-                      selectedGender === "Perempuan"
+                    onClick={() => setSelectedGender("female")}
+                    className={`flex-1 h-12 rounded-xl border flex items-center justify-center sm:justify-start px-4 gap-3 text-gray-900 font-medium text-xl transition-colors ${
+                      selectedGender === "female"
                         ? "border-[#2cb46c] bg-[#e6fbf2]"
                         : "border-gray-200 bg-white"
                     }`}
@@ -194,12 +368,14 @@ export default function Profile() {
               {/* Email Input */}
               <div>
                 <label className="block text-xl font-bold text-gray-900 mb-2">
-                  Email
+                  ID Pengguna
                 </label>
                 <input
-                  type="email"
-                  defaultValue="febrianfaiq@gmail.com"
-                  className="w-full h-[48px] px-4 rounded-xl border border-gray-200 text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium disabled:bg-gray-50"
+                  type="text"
+                  value={profile.id}
+                  disabled
+                  readOnly
+                  className="w-full h-12 px-4 rounded-xl border border-gray-200 text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium disabled:bg-gray-50"
                 />
               </div>
 
@@ -207,6 +383,7 @@ export default function Profile() {
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <button
                   onClick={() => setShowSaveModal(true)}
+                  disabled={isSaving}
                   className="px-8 py-3 bg-[#2cb46c] text-white font-bold text-xl rounded-xl hover:bg-[#259b5c] transition-colors"
                 >
                   Simpan Perubahan
@@ -218,7 +395,12 @@ export default function Profile() {
                   Hapus Akun
                 </button> */}
                 <button
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setFormName(profile.name);
+                    setSelectedAvatarId(profile.avatar_id);
+                    setSelectedGender(profile.gender);
+                  }}
                   className="px-8 py-3 bg-[#E9F8F0] text-[#2cb46c] font-bold text-xl border border-gray-300 rounded-xl hover:text-green-700"
                 >
                   Batal
@@ -227,13 +409,17 @@ export default function Profile() {
             </div>
           </div>
         </>
+      ) : (
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+          Data profil tidak tersedia.
+        </div>
       )}
 
       {/* Save Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-[24px] w-full max-w-[400px] p-6 lg:p-8 flex flex-col items-center text-center shadow-lg">
-            <div className="w-[120px] h-[120px] mb-4 flex items-center justify-center">
+          <div className="bg-white rounded-3xl w-full max-w-100 p-6 lg:p-8 flex flex-col items-center text-center shadow-lg">
+            <div className="w-30 h-30 mb-4 flex items-center justify-center">
               <Image
                 src="/pinguin/PinguinSenang.svg"
                 alt="Pingo"
@@ -257,13 +443,11 @@ export default function Profile() {
                 Batal
               </button>
               <button
-                onClick={() => {
-                  setShowSaveModal(false);
-                  setIsEditing(false);
-                }}
+                onClick={handleConfirmSave}
+                disabled={isSaving}
                 className="flex-1 py-3.5 bg-[#2cb46c] text-white font-bold rounded-xl hover:bg-[#259b5c] transition-colors"
               >
-                Simpan
+                {isSaving ? "Menyimpan..." : "Simpan"}
               </button>
             </div>
           </div>
@@ -273,8 +457,8 @@ export default function Profile() {
       {/* Delete Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-[24px] w-full max-w-[400px] p-6 lg:p-8 flex flex-col items-center text-center shadow-lg">
-            <div className="w-[120px] h-[120px] mb-4 flex items-center justify-center">
+          <div className="bg-white rounded-3xl w-full max-w-100 p-6 lg:p-8 flex flex-col items-center text-center shadow-lg">
+            <div className="w-30 h-30 mb-4 flex items-center justify-center">
               <Image
                 src="/pinguin/PinguinSedih.svg"
                 alt="Pingo Crying"
