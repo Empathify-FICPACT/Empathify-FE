@@ -11,7 +11,7 @@ import {
 } from "@/utils/auth-session";
 
 const navItems = [
-  { label: "Beranda", href: "/landing" },
+  { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/layanan" },
   { label: "Tentang Kami", href: "/tentang" },
 ];
@@ -45,8 +45,13 @@ export default function Header() {
       <div className="w-full max-w-[1920px] h-20 md:h-[88px] flex items-center justify-between px-6 md:px-12">
         {/* KIRI */}
         <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/landing" aria-label="Ke beranda">
-            <Image src="/logo.png" alt="Logo" width={150} height={60} />
+          <Link href="/" aria-label="Ke beranda">
+            <Image
+              src="/logo/Logo putih.svg"
+              alt="Logo"
+              width={150}
+              height={60}
+            />
           </Link>
 
           {/* DESKTOP MENU */}

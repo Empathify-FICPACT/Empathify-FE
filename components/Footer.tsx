@@ -9,7 +9,7 @@ import {
 import { FaXTwitter } from "react-icons/fa6";
 
 const navItems = [
-  { label: "Beranda", href: "/landing" },
+  { label: "Beranda", href: "/" },
   { label: "Layanan", href: "/layanan" },
   { label: "Tentang Kami", href: "/tentang" },
 ];
@@ -21,8 +21,8 @@ export default function Footer() {
         {/* TOP */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* LOGO */}
-          <Link href="/landing" aria-label="Ke beranda">
-            <Image src="/logo.png" alt="logo" width={140} height={60} />
+          <Link href="/" aria-label="Ke beranda">
+            <Image src="/logo/Logo putih.svg" alt="logo" width={140} height={60} />
           </Link>
 
           {/* MENU */}
