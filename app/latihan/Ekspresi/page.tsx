@@ -1,7 +1,10 @@
-"use client";
-
+import { Suspense } from "react";
 import Ekspresi from "@/components/latihan/Ekspresi";
 
 export default function EkspresiPage() {
-  return <Ekspresi />;
+  return (
+    <Suspense fallback={null}>
+      <Ekspresi />
+    </Suspense>
+  );
 }
