@@ -43,6 +43,24 @@ interface BadgesResponse {
   };
 }
 
+interface DashboardMissionsResponse {
+  meta: {
+    success: boolean;
+    message: string;
+  };
+  data: {
+    missions: MissionSummary;
+  };
+}
+
+const badgeImageByName: Record<string, string> = {
+  Pemula: "/penghargaan/Pemula.svg",
+  Penjelajah: "/penghargaan/Penjelajah.svg",
+  Jagoan: "/penghargaan/Jagoan.svg",
+  Raja: "/penghargaan/Raja.svg",
+  Master: "/penghargaan/Master.svg",
+};
+
 export default function RightSidebar({
   showMisi = true,
   missionSummary,
@@ -52,6 +70,8 @@ export default function RightSidebar({
   const [fetchedBadges, setFetchedBadges] = useState<
     BadgesResponse["data"] | null
   >(null);
+  const [fetchedMissionSummary, setFetchedMissionSummary] =
+    useState<MissionSummary | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -83,8 +103,45 @@ export default function RightSidebar({
     };
   }, []);
 
-  const totalMissions = missionSummary?.total_today ?? 0;
-  const completedMissions = missionSummary?.completed_today ?? 0;
+  useEffect(() => {
+    if (!showMisi || missionSummary) {
+      setFetchedMissionSummary(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchMissionSummary = async () => {
+      try {
+        const response = await apiFetch("/api/v1/dashboard", {
+          method: "GET",
+        });
+
+        const json = (await response.json()) as DashboardMissionsResponse;
+
+        if (!response.ok || !json.meta?.success) {
+          throw new Error(json.meta?.message || "Gagal mengambil misi harian");
+        }
+
+        if (!isMounted) return;
+        setFetchedMissionSummary(json.data?.missions ?? null);
+      } catch {
+        if (!isMounted) return;
+        setFetchedMissionSummary(null);
+      }
+    };
+
+    fetchMissionSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showMisi, missionSummary]);
+
+  const resolvedMissionSummary = missionSummary ?? fetchedMissionSummary;
+
+  const totalMissions = resolvedMissionSummary?.total_today ?? 0;
+  const completedMissions = resolvedMissionSummary?.completed_today ?? 0;
   const missionProgress =
     totalMissions > 0
       ? Math.round((completedMissions / totalMissions) * 100)
@@ -100,8 +157,16 @@ export default function RightSidebar({
         }
       : null);
 
-  const resolvedLatestBadge = useMemo(() => {
+  const unlockedCount = resolvedBadgeSummary?.unlocked ?? 0;
+
+  const resolvedFeaturedBadge = useMemo(() => {
     if (fetchedBadges?.badges?.length) {
+      const nextLockedBadge = fetchedBadges.badges.find(
+        (badge) => !badge.is_unlocked,
+      );
+
+      if (nextLockedBadge) return nextLockedBadge;
+
       const unlocked = fetchedBadges.badges.filter(
         (badge) => badge.is_unlocked,
       );
@@ -118,8 +183,23 @@ export default function RightSidebar({
     return latestBadge ?? null;
   }, [fetchedBadges, latestBadge]);
 
+  const featuredBadgeIcon =
+    unlockedCount === 0
+      ? "/logo/BadgeLevel.svg"
+      : resolvedFeaturedBadge
+        ? (badgeImageByName[resolvedFeaturedBadge.name] ??
+          "/logo/BadgeLevel.svg")
+        : "/logo/BadgeLevel.svg";
+
+  const featuredBadgeAlt =
+    unlockedCount === 0
+      ? "Lencana Terkunci"
+      : resolvedFeaturedBadge
+        ? `Lencana ${resolvedFeaturedBadge.name}`
+        : "Lencana Level";
+
   return (
-    <div className="w-full xl:w-112.5 shrink-0 order-1 xl:order-2 hidden xl:block">
+    <div className="w-full xl:w-112.5 shrink-0 order-1 xl:order-2 block">
       <div className="bg-white border border-gray-200 rounded-[20px] p-5 lg:p-6 shadow-sm">
         <h3 className="text-[#2cb46c] font-bold mb-3 lg:mb-4 text-base md:text-lg lg:text-2xl">
           Lencana
@@ -127,16 +207,16 @@ export default function RightSidebar({
         <div className="flex gap-4 items-center">
           <div className="shrink-0">
             <Image
-              src="/logo/BadgeLevel.svg"
-              alt="Lencana Level"
+              src={featuredBadgeIcon}
+              alt={featuredBadgeAlt}
               width={48}
               height={56}
               className="object-contain w-10 h-10 lg:w-12 lg:h-14"
             />
           </div>
           <p className="text-sm md:text-sm lg:text-xl text-gray-900 font-bold leading-snug">
-            {resolvedLatestBadge
-              ? `${resolvedLatestBadge.name}: ${resolvedLatestBadge.description}`
+            {resolvedFeaturedBadge
+              ? `${resolvedFeaturedBadge.name}: ${resolvedFeaturedBadge.description}`
               : "Mulai latihan untuk mendapatkan badge pertamamu!"}
           </p>
         </div>

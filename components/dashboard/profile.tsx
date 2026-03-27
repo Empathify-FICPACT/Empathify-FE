@@ -174,7 +174,7 @@ export default function Profile() {
 
   if (isLoadingProfile) {
     return (
-      <div className="w-375 items-start max-w-435 mx-12 px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
+      <div className="w-full max-w-435 mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
         <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
           Memuat profil...
         </div>
@@ -183,7 +183,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="w-375 items-start max-w-435 mx-12 px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
+    <div className="w-full max-w-435 mx-auto px-4 sm:px-4 lg:px-6 py-6 lg:py-10 bg-[#f9fafb] min-h-screen">
       <div className="flex justify-between items-center mb-6 lg:mb-8 mt-2">
         <h1 className="text-2xl md:text-[28px] font-bold text-gray-900">
           {isEditing ? "Profile Anda" : "Profil Anda"}
@@ -199,10 +199,10 @@ export default function Profile() {
       {!isEditing && profile ? (
         <>
           {/* View Mode */}
-          <div className="bg-white border border-gray-200 rounded-[20px] p-6 lg:p-8 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 shadow-sm">
-            <div className="flex items-center gap-6">
+          <div className="bg-white border border-gray-200 rounded-[20px] p-6 lg:p-8 flex flex-col md:flex-row items-center md:items-center justify-between mb-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6 w-full md:w-auto">
               <div
-                className={`w-25 h-25 rounded-2xl overflow-hidden ${selectedAvatar.bg} shrink-0`}
+                className={`w-25 h-25 rounded-2xl overflow-hidden ${selectedAvatar.bg} shrink-0 items-center`}
               >
                 <Image
                   src={selectedAvatar.src}
@@ -212,21 +212,18 @@ export default function Profile() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex flex-col justify-center">
-                <h3 className="text-[#2cb46c] text-xl lg:text-2xl font-bold leading-none mb-2">
+              <div className="flex flex-col justify-center items-center sm:items-start text-center sm:text-left">
+                <h3 className="text-[#2cb46c] text-xl lg:text-2xl font-bold leading-none mb-2 mt-2">
                   {profile.name}
                 </h3>
                 <p className="text-sm lg:text-xl font-semibold text-gray-900 leading-none mb-3">
                   {profile.gender === "male" ? "Laki-laki" : "Perempuan"}
                 </p>
-                <p className="text-base font-medium text-gray-400 mt-3 leading-none">
-                  ID Pengguna: {profile.id}
-                </p>
               </div>
             </div>
             <button
               onClick={handleOpenEdit}
-              className="mt-6 md:mt-0 px-8 py-2.5 bg-[#2cb46c] text-white text-lg font-bold rounded-xl hover:bg-[#259b5c] transition-colors"
+              className="mt-6 md:mt-0 w-full sm:w-auto px-8 py-2.5 bg-[#2cb46c] text-white text-lg font-bold rounded-xl hover:bg-[#259b5c] transition-colors"
             >
               Ubah
             </button>
@@ -278,16 +275,16 @@ export default function Profile() {
       ) : profile ? (
         <>
           {/* Edit Mode */}
-          <div className="bg-white border border-gray-200 rounded-[20px] p-6 lg:p-8 shadow-sm">
-            <h3 className="text-lg font-medium text-gray-400 mb-4">
+          <div className="bg-white border border-gray-200 rounded-[20px] p-4 sm:p-6 lg:p-8 shadow-sm">
+            <h3 className="text-base sm:text-lg font-medium text-gray-400 mb-3 sm:mb-4">
               Foto Profile
             </h3>
-            <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
+            <div className="flex gap-3 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2">
               {AVATARS.map((av, idx) => (
                 <div
                   key={idx}
                   onClick={() => setSelectedAvatarId(av.id)}
-                  className={`w-25 h-25 rounded-2xl overflow-hidden shrink-0 cursor-pointer ${
+                  className={`w-20 h-20 sm:w-25 sm:h-25 rounded-xl sm:rounded-2xl overflow-hidden shrink-0 cursor-pointer ${
                     av.bg
                   } border-[3px] ${
                     selectedAvatarId === av.id
@@ -306,33 +303,33 @@ export default function Profile() {
               ))}
             </div>
 
-            <h3 className="text-lg font-medium text-gray-400 mb-4">
+            <h3 className="text-base sm:text-lg font-medium text-gray-400 mb-3 sm:mb-4">
               Informasi Akun
             </h3>
 
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 sm:gap-6">
               {/* Nama Input */}
               <div>
-                <label className="block text-xl font-bold text-gray-900 mb-2">
+                <label className="block text-lg sm:text-xl font-bold text-gray-900 mb-2">
                   Nama
                 </label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-gray-200 text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium"
+                  className="w-full h-11 sm:h-12 px-3 sm:px-4 rounded-xl border border-gray-200 text-lg sm:text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium"
                 />
               </div>
 
               {/* Jenis Kelamin */}
               <div>
-                <label className="block text-xl font-bold text-gray-900 mb-2">
+                <label className="block text-lg sm:text-xl font-bold text-gray-900 mb-2">
                   Jenis Kelamin
                 </label>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     onClick={() => setSelectedGender("male")}
-                    className={`flex-1 h-12 rounded-xl border flex items-center justify-center sm:justify-start px-4 gap-3 text-gray-900 font-medium text-xl transition-colors ${
+                    className={`flex-1 h-10 sm:h-12 rounded-xl border flex items-center justify-center sm:justify-start px-3 sm:px-4 gap-2 sm:gap-3 text-gray-900 font-medium text-lg sm:text-xl transition-colors ${
                       selectedGender === "male"
                         ? "border-[#2cb46c] bg-[#e6fbf2]"
                         : "border-gray-200 bg-white"
@@ -341,14 +338,14 @@ export default function Profile() {
                     <Image
                       src="/icon/SimbolCowo.svg"
                       alt="Laki-laki"
-                      width={20}
-                      height={20}
+                      width={18}
+                      height={18}
                     />
                     Laki-laki
                   </button>
                   <button
                     onClick={() => setSelectedGender("female")}
-                    className={`flex-1 h-12 rounded-xl border flex items-center justify-center sm:justify-start px-4 gap-3 text-gray-900 font-medium text-xl transition-colors ${
+                    className={`flex-1 h-10 sm:h-12 rounded-xl border flex items-center justify-center sm:justify-start px-3 sm:px-4 gap-2 sm:gap-3 text-gray-900 font-medium text-lg sm:text-xl transition-colors ${
                       selectedGender === "female"
                         ? "border-[#2cb46c] bg-[#e6fbf2]"
                         : "border-gray-200 bg-white"
@@ -357,8 +354,8 @@ export default function Profile() {
                     <Image
                       src="/icon/SimbolCewe.svg"
                       alt="Perempuan"
-                      width={30}
-                      height={30}
+                      width={22}
+                      height={22}
                     />
                     Perempuan
                   </button>
@@ -366,7 +363,7 @@ export default function Profile() {
               </div>
 
               {/* Email Input */}
-              <div>
+              {/* <div>
                 <label className="block text-xl font-bold text-gray-900 mb-2">
                   ID Pengguna
                 </label>
@@ -377,14 +374,14 @@ export default function Profile() {
                   readOnly
                   className="w-full h-12 px-4 rounded-xl border border-gray-200 text-xl outline-none focus:border-[#2cb46c] text-gray-900 font-medium disabled:bg-gray-50"
                 />
-              </div>
+              </div> */}
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-8">
                 <button
                   onClick={() => setShowSaveModal(true)}
                   disabled={isSaving}
-                  className="px-8 py-3 bg-[#2cb46c] text-white font-bold text-xl rounded-xl hover:bg-[#259b5c] transition-colors"
+                  className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#2cb46c] text-white font-bold text-lg sm:text-xl rounded-xl hover:bg-[#259b5c] transition-colors"
                 >
                   Simpan Perubahan
                 </button>
@@ -401,7 +398,7 @@ export default function Profile() {
                     setSelectedAvatarId(profile.avatar_id);
                     setSelectedGender(profile.gender);
                   }}
-                  className="px-8 py-3 bg-[#E9F8F0] text-[#2cb46c] font-bold text-xl border border-gray-300 rounded-xl hover:text-green-700"
+                  className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#E9F8F0] text-[#2cb46c] font-bold text-lg sm:text-xl border border-gray-300 rounded-xl hover:text-green-700"
                 >
                   Batal
                 </button>

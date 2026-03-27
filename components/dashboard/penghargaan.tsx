@@ -26,12 +26,29 @@ interface BadgesResponse {
   };
 }
 
+interface UserProfileResponse {
+  meta: {
+    success: boolean;
+    message: string;
+  };
+  data: {
+    total_xp: number;
+  };
+}
+
 const badgeImageByName: Record<string, string> = {
   Pemula: "/penghargaan/Pemula.svg",
   Penjelajah: "/penghargaan/Penjelajah.svg",
   Jagoan: "/penghargaan/Jagoan.svg",
   Raja: "/penghargaan/Raja.svg",
   Master: "/penghargaan/Master.svg",
+};
+
+const xpTargetByBadgeName: Record<string, number> = {
+  Penjelajah: 200,
+  Jagoan: 500,
+  Raja: 1000,
+  Master: 2000,
 };
 
 const formatEarnedDate = (date: string | null) => {
@@ -51,32 +68,52 @@ export default function Penghargaan() {
   const [badgesData, setBadgesData] = useState<BadgesResponse["data"] | null>(
     null,
   );
+  const [userTotalXp, setUserTotalXp] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchBadges = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
-        const response = await apiFetch("/api/v1/badges", {
-          method: "GET",
-        });
+        const [badgesResponse, profileResponse] = await Promise.all([
+          apiFetch("/api/v1/badges", {
+            method: "GET",
+          }),
+          apiFetch("/api/v1/user/profile", {
+            method: "GET",
+          }),
+        ]);
 
-        const json = (await response.json()) as BadgesResponse;
+        const badgesJson = (await badgesResponse.json()) as BadgesResponse;
+        const profileJson =
+          (await profileResponse.json()) as UserProfileResponse;
 
-        if (!response.ok || !json.meta?.success) {
-          throw new Error(json.meta?.message || "Gagal mengambil badge");
+        if (!badgesResponse.ok || !badgesJson.meta?.success) {
+          throw new Error(badgesJson.meta?.message || "Gagal mengambil badge");
+        }
+
+        if (!profileResponse.ok || !profileJson.meta?.success) {
+          throw new Error(
+            profileJson.meta?.message || "Gagal mengambil data XP pengguna",
+          );
         }
 
         if (!isMounted) return;
-        setBadgesData(json.data);
+        setBadgesData(badgesJson.data);
+        setUserTotalXp(
+          Number.isFinite(profileJson.data?.total_xp)
+            ? profileJson.data.total_xp
+            : 0,
+        );
       } catch (error) {
         if (!isMounted) return;
         setBadgesData(null);
+        setUserTotalXp(0);
         setErrorMessage(
           error instanceof Error
             ? error.message
@@ -89,7 +126,7 @@ export default function Penghargaan() {
       }
     };
 
-    fetchBadges();
+    fetchData();
 
     return () => {
       isMounted = false;
@@ -141,8 +178,20 @@ export default function Penghargaan() {
             {(isLoading ? [] : (badgesData?.badges ?? [])).map((item) => {
               const image =
                 badgeImageByName[item.name] ?? "/logo/BadgeLevel.svg";
-              const percentage = item.is_unlocked ? 100 : 0;
-              const progress = item.is_unlocked ? "1 / 1" : "0 / 1";
+              const xpTarget = xpTargetByBadgeName[item.name];
+
+              const target = item.name === "Pemula" ? 1 : (xpTarget ?? 1);
+              const current =
+                item.name === "Pemula"
+                  ? item.is_unlocked
+                    ? 1
+                    : 0
+                  : item.is_unlocked
+                    ? target
+                    : Math.min(userTotalXp, target);
+
+              const percentage = Math.round((current / target) * 100);
+              const progress = `${current}/${target}`;
 
               return (
                 <div

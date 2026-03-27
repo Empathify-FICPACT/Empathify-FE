@@ -117,7 +117,7 @@ export default function Misi() {
             <h1 className="text-2xl md:text-[28px] font-bold text-gray-900">
               Misi Harian
             </h1>
-            <span className="text-sm lg:text-base pr-3 pt-2  mt-4 font-bold text-gray-900">
+            <span className="text-sm lg:text-base pr-3   mt-2 font-bold text-yellow-500">
               {timeLeft}
             </span>
           </div>

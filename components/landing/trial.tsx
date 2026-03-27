@@ -1,7 +1,24 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  hasValidLogoutGraceSession,
+  restoreSessionFromLogoutGrace,
+} from "@/utils/auth-session";
 
 export default function Trial() {
+  const router = useRouter();
+
+  const handleStartTraining = () => {
+    if (hasValidLogoutGraceSession() && restoreSessionFromLogoutGrace()) {
+      router.push("/dashboard/beranda");
+      return;
+    }
+
+    router.push("/login");
+  };
+
   return (
     <section className="relative w-full overflow-hidden bg-[#35b565] flex items-center min-h-[400px] md:min-h-[500px] mt-20">
       {/* Background patterns from bgFree Trial.svg */}
@@ -36,11 +53,13 @@ export default function Trial() {
           <p className="text-white/90 text-base md:text-lg lg:text-2xl mb-8 md:mb-10 font-medium">
             Jelajahi latihan pertama dan rasakan pengalaman belajar yang seru seperti bermain game.
           </p>
-         <Link href="/dashboard/latihan">
-          <button className="bg-[#ffc107] hover:bg-[#ffb300] text-white font-bold py-3 md:py-3.5 px-8 md:px-12 rounded-full border-[3px] border-yellow-200 shadow-md hover:shadow-lg transition-all text-base md:text-lg">
+          <button
+            type="button"
+            onClick={handleStartTraining}
+            className="bg-[#ffc107] hover:bg-[#ffb300] text-white font-bold py-3 md:py-3.5 px-8 md:px-12 rounded-full border-[3px] border-yellow-200 shadow-md hover:shadow-lg transition-all text-base md:text-lg"
+          >
             Coba Latihan
           </button>
-        </Link>
         </div>
       </div>
     </section>

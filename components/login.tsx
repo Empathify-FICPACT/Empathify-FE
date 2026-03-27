@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import {
+  clearLogoutGraceSession,
+  restoreSessionFromLogoutGrace,
+} from "@/utils/auth-session";
 
 export default function Login() {
   const router = useRouter();
@@ -13,6 +17,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const restored = restoreSessionFromLogoutGrace();
+    if (restored) {
+      router.replace("/dashboard/beranda");
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,20 +37,26 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://empathify-be-staging.fly.dev/api/v1/auth/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        "https://empathify-be-staging.fly.dev/api/v1/auth/login/",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
       const data = await res.json();
 
       if (!res.ok || !data.meta?.success) {
-        throw new Error(data.meta?.message || "Login gagal, periksa kredensial Anda.");
+        throw new Error(
+          data.meta?.message || "Login gagal, periksa kredensial Anda.",
+        );
       }
 
       const token = data.data.access_token;
       Cookies.set("access_token", token, { expires: 7 }); // expires in 7 days
-      
+      clearLogoutGraceSession();
+
       router.push("/dashboard/beranda");
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan sistem.");
@@ -49,7 +66,8 @@ export default function Login() {
   };
 
   const handleGoogleAuth = () => {
-    window.location.href = "https://empathify-be-staging.fly.dev/api/v1/auth/google/";
+    window.location.href =
+      "https://empathify-be-staging.fly.dev/api/v1/auth/google/";
   };
 
   return (
@@ -62,25 +80,25 @@ export default function Login() {
         <div className="flex items-center gap-2 md:gap-4">
           {/* Close Icon */}
           <Link href="/landing">
-          <button
-            aria-label="Tutup"
-            className="p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-              stroke="currentColor"
-              className="w-5 h-5 md:w-6 md:h-6"
+            <button
+              aria-label="Tutup"
+              className="p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                stroke="currentColor"
+                className="w-5 h-5 md:w-6 md:h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </Link>
 
           {/* Logo */}
@@ -98,7 +116,6 @@ export default function Login() {
         {/* Register Button */}
         <Link href="/register">
           <button className="bg-[#E9F8F0] text-[#2ECA7B] px-5 py-2 md:px-8 md:py-2.5 rounded-2xl shadow-xl font-bold hover:bg-green-50 transition-colors text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-white">
-            
             Daftar
           </button>
         </Link>
@@ -219,7 +236,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-[#2ECA7B] hover:bg-[#25a866] text-white font-bold py-2.5 sm:py-3.5 px-4 rounded-xl transition-colors shadow-sm text-sm sm:text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full bg-[#2ECA7B] hover:bg-[#25a866] text-white font-bold py-2.5 sm:py-3.5 px-4 rounded-xl transition-colors shadow-sm text-sm sm:text-base mt-2 ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {loading ? "Masuk..." : "Masuk"}
           </button>

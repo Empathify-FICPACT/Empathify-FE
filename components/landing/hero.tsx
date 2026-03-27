@@ -1,28 +1,45 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  hasValidLogoutGraceSession,
+  restoreSessionFromLogoutGrace,
+} from "@/utils/auth-session";
 
 export default function Hero() {
+  const router = useRouter();
+
+  const handleStartLearning = () => {
+    if (hasValidLogoutGraceSession() && restoreSessionFromLogoutGrace()) {
+      router.push("/dashboard/beranda");
+      return;
+    }
+
+    router.push("/login");
+  };
+
   return (
-    <section 
-      className="relative w-full min-h-[300px] md:min-h-[450px] lg:min-h-[500px] flex items-center bg-[#2cb46c] bg-[url('/background/BgHero.svg')] bg-cover bg-[position:left_top] md:bg-center bg-no-repeat text-white overflow-hidden py-16 md:py-24"
-    >
+    <section className="relative w-full min-h-[300px] md:min-h-[450px] lg:min-h-[500px] flex items-center bg-[#2cb46c] bg-[url('/background/BgHero.svg')] bg-cover bg-[position:left_top] md:bg-center bg-no-repeat text-white overflow-hidden py-16 md:py-24">
       <div className="container mx-auto px-6 lg:px-12 max-w-8xl relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-12 lg:gap-8">
-        
         {/* Left Content */}
         <div className="flex-1 w-full max-w-3xl text-center md:text-left flex flex-col items-center md:items-start">
           <h1 className="text-3xl sm:text-5xl md:text-5xl lg:text-[64px] font-extrabold leading-[1.2] lg:leading-[1.1] mb-5 tracking-tight px-2 md:px-0">
-            belajar, bermain, dan <br className="hidden md:block" /> berkembang setiap hari
+            belajar, bermain, dan <br className="hidden md:block" /> berkembang
+            setiap hari
           </h1>
           <p className="text-center md:text-left text-base sm:text-lg md:text-xl lg:text-2xl font-medium opacity-95 mb-8 md:mb-10 max-w-2xl px-4 md:px-0">
-            Bantu anak kenali emosi, berlatih sosial, dan berkembang dengan
-            cara yang lebih seru dan interaktif.
+            Bantu anak kenali emosi, berlatih sosial, dan berkembang dengan cara
+            yang lebih seru dan interaktif.
           </p>
-          
-          <Link href="/login">
-            <button className="bg-[#ffc107] hover:bg-[#ffb300] text-white font-bold py-3 md:py-3.5 px-8 md:px-12 rounded-full border-[3px] border-yellow-200 shadow-md hover:shadow-lg transition-all text-base md:text-lg mx-auto md:mx-0">
-              Mulai Belajar, Yuk
-            </button>
-          </Link>
+
+          <button
+            type="button"
+            onClick={handleStartLearning}
+            className="bg-[#ffc107] hover:bg-[#ffb300] text-white font-bold py-3 md:py-3.5 px-8 md:px-12 rounded-full border-[3px] border-yellow-200 shadow-md hover:shadow-lg transition-all text-base md:text-lg mx-auto md:mx-0"
+          >
+            Mulai Belajar, Yuk
+          </button>
         </div>
 
         {/* Right Content / Image */}
@@ -37,7 +54,6 @@ export default function Hero() {
             />
           </div>
         </div>
-
       </div>
     </section>
   );

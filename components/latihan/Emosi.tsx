@@ -209,11 +209,27 @@ export default function Emosi() {
   };
 
   const getIconPath = (emotionName: string) => {
-    // Basic dynamic matching for existing icons (Senang, Sedih, Marah, Takut, Bosan, dll)
-    // Asumsi nama icon case-sensitive di folder /icon
-    // Kita buat capitalisasi huruf pertama
+    const normalized = emotionName.trim().toLowerCase();
+
+    const iconByKeyword: Array<{ keywords: string[]; icon: string }> = [
+      { keywords: ["senang", "bahagia", "gembira"], icon: "Senang" },
+      { keywords: ["sedih"], icon: "Sedih" },
+      { keywords: ["kecewa"], icon: "Kecewa" },
+      { keywords: ["marah", "kesal"], icon: "Marah" },
+      { keywords: ["takut"], icon: "Takut" },
+      { keywords: ["gugup", "cemas", "grogi"], icon: "Gugup" },
+      { keywords: ["bosan", "jenuh"], icon: "Bosan" },
+      { keywords: ["bangga", "percaya diri"], icon: "Bangga" },
+    ];
+
+    const matched = iconByKeyword.find(({ keywords }) =>
+      keywords.some((keyword) => normalized.includes(keyword)),
+    );
+
+    if (matched) return `/icon/${matched.icon}.svg`;
+
     const capitalized =
-      emotionName.charAt(0).toUpperCase() + emotionName.slice(1).toLowerCase();
+      normalized.charAt(0).toUpperCase() + normalized.slice(1);
     return `/icon/${capitalized}.svg`;
   };
 

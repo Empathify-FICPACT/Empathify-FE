@@ -2,8 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import {
+  hasValidLogoutGraceSession,
+  restoreSessionFromLogoutGrace,
+} from "@/utils/auth-session";
 
 const navItems = [
   { label: "Beranda", href: "/landing" },
@@ -13,6 +18,27 @@ const navItems = [
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [canQuickLogin, setCanQuickLogin] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setCanQuickLogin(hasValidLogoutGraceSession());
+  }, []);
+
+  const handleMasukClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!canQuickLogin) return;
+
+    event.preventDefault();
+
+    const restored = restoreSessionFromLogoutGrace();
+    if (restored) {
+      router.push("/dashboard/beranda");
+      return;
+    }
+
+    setCanQuickLogin(false);
+    router.push("/login");
+  };
 
   return (
     <header className="w-full bg-[#25B868] flex justify-center fixed top-0 z-50">
@@ -20,7 +46,7 @@ export default function Header() {
         {/* KIRI */}
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/landing" aria-label="Ke beranda">
-            <Image src="/logo.png" alt="Logo" width={120} height={52} />
+            <Image src="/logo.png" alt="Logo" width={150} height={60} />
           </Link>
 
           {/* DESKTOP MENU */}
@@ -47,7 +73,8 @@ export default function Header() {
           </Link>
 
           <Link
-            href="/login"
+            href={canQuickLogin ? "/dashboard/beranda" : "/login"}
+            onClick={handleMasukClick}
             className="w-[120px] h-[45px] bg-[#FFC200] text-white text-[18px] font-bold rounded-[12px] border-[3px] border-[#FFDE00] transition duration-300 hover:scale-105 hover:shadow-lg active:scale-95 inline-flex items-center justify-center"
           >
             Masuk
@@ -91,8 +118,11 @@ export default function Header() {
         </Link>
 
         <Link
-          href="/login"
-          onClick={() => setIsOpen(false)}
+          href={canQuickLogin ? "/dashboard/beranda" : "/login"}
+          onClick={(event) => {
+            setIsOpen(false);
+            handleMasukClick(event);
+          }}
           className="w-[140px] h-[45px] bg-[#FFC200] text-white font-bold rounded-[12px] border-[3px] border-[#FFDE00] hover:scale-105 transition active:scale-95 inline-flex items-center justify-center"
         >
           Masuk
