@@ -32,13 +32,7 @@ export default function Fitur() {
       image: "/pinguin/PinguinKuning.svg",
       link: "#",
     },
-    {
-      title: "Chatbot",
-      description: "Bantuan cepat untuk menjawab segala pertanyaan.",
-      bgColor: "bg-[#fe6b60]",
-      image: "/pinguin/PinguinMerah.svg",
-      link: "#",
-    },
+    
   ];
 
   return (
@@ -59,7 +53,7 @@ export default function Fitur() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`relative overflow-hidden rounded-[24px] p-8 text-white ${feature.bgColor} w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] min-h-[200px] lg:min-h-[250px] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group`}
+              className={`relative overflow-hidden rounded-[24px] p-8 text-white ${feature.bgColor} w-full sm:w-[calc(50%-12px)] min-h-[200px] lg:min-h-[250px] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group`}
             >
               <div className="relative z-10 w-[70%] sm:w-[65%] flex flex-col h-full">
                 <h3 className="text-xl lg:text-2xl font-bold mb-3">

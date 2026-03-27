@@ -99,29 +99,7 @@ export default function LayananPage() {
           </div>
         </section>
 
-        {/* LAYANAN PENDUKUNG */}
-        <section className="px-6 min-[760px]:pl-10 min-[1100px]:px-10 min-[1500px]:px-0 py-12 md:py-16 max-w-[1400px] mx-auto">
-          {/* TITLE */}
-          <div className="mb-10 text-center min-[1500px]:text-left">
-            <h2 className="text-[32px] md:text-[46px] font-extrabold text-[#25B868] font-[Nunito] mb-4">
-              Layanan Pendukung
-            </h2>
-
-            <p className="text-[18px] md:text-[24px] text-[#777] font-[Nunito] text-justify">
-              Dukungan untuk pengalaman belajar yang lebih baik.
-            </p>
-          </div>
-
-          {/* CARD */}
-          <div className="w-full max-w-[640px]">
-            <ServiceCard
-              title="Chatbot"
-              description="Bantuan cepat untuk menjawab segala pertanyaan."
-              image="/penguin5.png"
-              bgColor="bg-[rgba(255,109,89,1)]"
-            />
-          </div>
-        </section>
+     
       </main>
       <Footer />
     </div>
